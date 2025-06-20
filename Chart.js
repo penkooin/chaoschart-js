@@ -35,6 +35,7 @@ export class Chart {
         this.INDENT_TOP = 30;
         this.INDENT_BOTTOM = 30;
 
+        this.IS_SHOW_BG_GRID = false;
         this.IS_SHOW_GRID_Y = true;
         this.IS_SHOW_GRID_X = true;
         this.IS_SHOW_INDEX_Y = true;
@@ -88,6 +89,7 @@ export class Chart {
         this.INDEX_FONT_ALPHA = 0.7;
         this.INDEX_FONT_SIZE = 10;
 
+        this.BG_GRID_ALPHA = 0.1; // Background grid alpha
         this.GRID_ALPHA = 0.3;
         this.GRID_SIZE = 0.3;
         this.GRID_STYLE = ChartConstants.GRID.LINE;

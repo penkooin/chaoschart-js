@@ -104,6 +104,11 @@ export class ChartElement {
         this.values.push(value);
     }
 
+    pushValue(value) {
+        this.values.push(value);
+        deleteValue(0);
+    }
+
     deleteValue(index) {
         this.values.splice(index, 1);
     }

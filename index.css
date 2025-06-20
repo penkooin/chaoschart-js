@@ -23,6 +23,7 @@ code {
   box-shadow: 10px, 10px, 10px hsl(182, 80%, 10%);
   border: 10px solid hsl(182, 71%, 60%);
   border-radius: 30px;
+  padding: 30px;
   text-align: center;
 }
 

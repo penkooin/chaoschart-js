@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChaosChart - Lightweight JavaScript Chart Library</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background-color: #fff;
+            color: #333;
+        }
+
+        h1,
+        h2,
+        h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3rem;
+        }
+
+        code,
+        pre {
+            background: #f4f4f4;
+            padding: 0.3rem;
+            border-radius: 4px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .gallery {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .gallery img {
+            width: 120px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .gallery div {
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: box-shadow 0.2s, outline 0.2s;
+        }
+
+        .gallery div:focus,
+        .gallery div:hover,
+        .gallery div:focus {
+            box-shadow: 0 0 0 3px #aed9fd;
+            border-radius: 10px;
+            outline: none;
+            transform: scale(1.05);
+            transition: box-shadow 0.2s, outline 0.2s, transform 0.2s;
+        }
+
+        .code-block {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+    <script>
+        function zoomImage(img) {
+            // Create a new image element for zoomed view
+            const zoomedImg = document.createElement('img');
+            zoomedImg.src = img.src;
+            zoomedImg.style.position = 'fixed';
+            zoomedImg.style.top = '50%';
+            zoomedImg.style.left = '50%';
+            zoomedImg.style.transform = 'translate(-50%, -50%)';
+            zoomedImg.style.maxWidth = '90%';
+            zoomedImg.style.maxHeight = '90%';
+            zoomedImg.style.zIndex = '1000';
+            zoomedImg.style.cursor = 'zoom-out';
+
+            // Add click event to remove the zoomed image
+            zoomedImg.onclick = function () {
+                document.body.removeChild(zoomedImg);
+            };
+
+            // Append the zoomed image to the body
+            document.body.appendChild(zoomedImg);
+        }
+    </script>
+</head>
+
+<body>
+    <div class="center">
+        <img src="./images/banner.png" alt="ChaosChart Banner" />
+    </div>
+
+    <h1>📊 ChaosChart</h1>
+    <p><strong>ChaosChart</strong> is a lightweight JavaScript charting library designed for simple rendering of various
+        chart types directly into HTML <code>&lt;canvas&gt;</code> elements without any third-party frameworks. This
+        library is ideal for embedding clean and minimal charts into websites, dashboards, or internal tools.</p>
+
+    <div class="gallery">
+        <div tabindex="0">
+            <img src="./images/area.png" alt="Area Chart" onclick="zoomImage(this)" style="cursor: zoom-in;" />
+            <div><strong>Area Chart</strong></div>
+        </div>
+        <div>
+            <img src="./images/bar.png" alt="Bar Chart" onclick="zoomImage(this)" style="cursor: zoom-in;" />
+            <div><strong>Bar Chart</strong></div>
+        </div>
+        <div>
+            <img src="./images/line.png" alt="Line Chart" onclick="zoomImage(this)" style="cursor: zoom-in;" />
+            <div><strong>Line Chart</strong></div>
+        </div>
+        <div>
+            <img src="./images/pie.png" alt="Pie Chart" onclick="zoomImage(this)" style="cursor: zoom-in;" />
+            <div><strong>Pie Chart</strong></div>
+        </div>
+        <div>
+            <img src="./images/barratio.png" alt="Ratio Bar Chart" onclick="zoomImage(this)" style="cursor: zoom-in;" />
+            <div><strong>Ratio Bar Chart</strong></div>
+        </div>
+    </div>
+
+    <h2>🚀 Features</h2>
+    <ul>
+        <li>✅ Pure JavaScript with no external dependencies</li>
+        <li>✅ Supports multiple chart types</li>
+        <li>✅ Custom titles and flexible configuration</li>
+        <li>✅ Manual DOM integration for maximum control</li>
+        <li>✅ Lightweight and framework-agnostic</li>
+    </ul>
+
+    <h2>✨ Demo Overview</h2>
+    <p>The library renders five chart types by dynamically creating HTML elements and mounting them into a root DOM
+        node:</p>
+    <div class="code-block">
+        <pre><code>&lt;div id="root"&gt;
+  &lt;!-- Title section --&gt;
+  &lt;div class="titleContainer"&gt;
+    &lt;p&gt;ChaosChart Library v0.0.1&lt;/p&gt;
+    &lt;p&gt;&copy; All rights reserved by author Kooin Shin.&lt;/p&gt;
+    &lt;div class="htmlCheck"&gt;HTML is loaded and script is running.&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Canvas-rendered charts --&gt;
+  &lt;div class="chartContainer"&gt;&lt;canvas class="chartCanvas"&gt;&lt;/canvas&gt;&lt;/div&gt;
+  ...
+&lt;/div&gt;</code></pre>
+    </div>
+
+    <h2>📦 Installation</h2>
+    <div class="code-block">
+        <pre><code>npm install chaoschart</code></pre>
+        <p><em>Or, if you're linking locally:</em></p>
+        <pre><code>npm install file:../path/to/chaoschart</code></pre>
+    </div>
+
+    <h2>🧩 Usage</h2>
+    <div class="code-block">
+        <pre><code>import startup from 'chaoschart';
+
+window.onload = () =&gt; {
+  startup(); // Appends all chart elements to #root
+};</code></pre>
+        <p><em>Make sure you have an HTML element with <code>id="root"</code> in your DOM.</em></p>
+    </div>
+
+    <h2>🛠️ Developer Info</h2>
+    <ul>
+        <li><strong>Author:</strong> Kooin Shin</li>
+        <li><strong>Version:</strong> v0.0.1</li>
+        <li><strong>License:</strong> All rights reserved</li>
+    </ul>
+
+    <h2>📁 Project Structure Summary</h2>
+    <div class="code-block">
+        <pre><code>chaoschart/
+├── factory/
+│   └── DefaultChartFactory.js
+├── ChartConstants.js
+├── sample.js
+├── index.js
+└── README.md</code></pre>
+    </div>
+
+    <h2>📜 License</h2>
+    <p>&copy; All rights reserved by Kooin Shin.<br />Not licensed for public/commercial use without permission.</p>
+</body>
+
+</html>

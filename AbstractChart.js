@@ -163,12 +163,14 @@ export class AbstractChart extends Chart {
     drawChartBackground(offscreenCtx) {
         this.initChart(this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
         this.sweepCanvas(this.CANVAS_WIDTH, this.CANVAS_HEIGHT, offscreenCtx);
-        this.drawGraphBackground(this.CHART_WIDTH, this.CHART_HEIGHT, 12, offscreenCtx);
 
         const maxValue = this.CHART_ELEMENTS.getMaximum();
         const xIndex = this.CHART_ELEMENTS.getXIndex();
         const yIndex = this.CHART_ELEMENTS.getYIndex();
 
+        if (this.IS_SHOW_BG_GRID) {
+            this.drawGraphBackground(this.CHART_WIDTH, this.CHART_HEIGHT, 12, offscreenCtx);
+        }
         if (this.IS_SHOW_BG) {
             this.drawChartBg(offscreenCtx);
         }
@@ -296,7 +298,7 @@ export class AbstractChart extends Chart {
         ctx.lineWidth = 1;
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = this.BORDER_COLOR;
-        ctx.globalAlpha = this.GRID_ALPHA;
+        ctx.globalAlpha = this.BG_GRID_ALPHA;
 
         const col = (this.CHART_WIDTH / dotIndent * Math.pow(10, 2)) / Math.pow(10, 2);
         const row = (this.CHART_HEIGHT / dotIndent * Math.pow(10, 2)) / Math.pow(10, 2);
@@ -860,13 +862,53 @@ export class AbstractChart extends Chart {
     }
 
     /**
+     * Add element value and redraw chart
+     * If element does not exist, create new element with given name and value
+     * @param {*} elementName 
+     * @param {*} value 
+     */
+    addElementValue(elementName, value) {
+        const element = this.CHART_ELEMENTS.getChartElementMap().get(elementName);
+        if (element) {
+            element.addValue(value);
+            this.drawChart();
+        } else {
+            this.CHART_ELEMENTS.addChartElement(elementName, new ChartElement(elementName, [value]));
+        }
+        this.drawChart();
+    }
+
+    /**
+     * Push element value and redraw chart
+     * If element does not exist, create new element with given name and value
+     * @param {*} elementName 
+     * @param {*} value 
+     */
+    pushElementValue(elementName, value) {
+        const element = this.CHART_ELEMENTS.getChartElementMap().get(elementName);
+        if (element) {
+            element.pushValue(value);
+        } else {
+            this.CHART_ELEMENTS.addChartElement(elementName, new ChartElement(elementName, [value]));
+        }
+        this.drawChart();
+    }
+
+    /**
      * Set element value on index and redraw chart
+     * If element does not exist, create new element with given name and value
      * @param {*} elementName 
      * @param {*} index 
      * @param {*} value 
      */
     setElementValue(elementName, index, value) {
-        this.CHART_ELEMENTS.getChartElementMap().get(elementName).getValues()[index] = value;
+        const element = this.CHART_ELEMENTS.getChartElementMap().get(elementName);
+        if (element) {
+            element.setValue(index, value);
+        } else {
+            this.CHART_ELEMENTS.addChartElement(elementName, new ChartElement(elementName, []));
+            this.CHART_ELEMENTS.getChartElementMap().get(elementName).setValue(index, value);
+        }
         this.drawChart();
     }
 

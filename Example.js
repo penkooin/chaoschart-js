@@ -16,7 +16,7 @@ export default function startup() {
     const titleContainer = document.createElement("div");
     titleContainer.className = "titleContainer";
     titleContainer.innerHTML = `
-            <p>ChaosChart Library v0.0.1</p>
+            <p>ChaosChart Javascript Library v1.0.0</p>
             <p>©️ All rights reserved by author Kooin Shin.</p>
         `;
 
