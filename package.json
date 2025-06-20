@@ -1,0 +1,33 @@
+{
+  "name": "chaoschart",
+  "version": "1.0.3",
+  "description": "ChaosChartJS - A modular charting library written in vanilla JavaScript.",
+  "type": "module",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "chart",
+    "javascript",
+    "visualization",
+    "library"
+  ],
+  "author": "Kooin Shin",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.4.19"
+  }
+}

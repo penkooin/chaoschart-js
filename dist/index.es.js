@@ -1,0 +1,2252 @@
+var v = Object.defineProperty;
+var w = (d, t, e) => t in d ? v(d, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : d[t] = e;
+var b = (d, t, e) => w(d, typeof t != "symbol" ? t + "" : t, e);
+const I = {
+  /**
+   * CHART
+   * 
+   * This is representing type of CHART
+   *
+   * @author Kooin-Shin
+   * 2020. 9. 23.
+   */
+  CHART: {
+    AREA: "AREA",
+    BAR: "BAR",
+    BAR_RATIO: "BAR_RATIO",
+    CIRCLE: "CIRCLE",
+    LINE: "LINE"
+  },
+  /**
+   * GRID
+   * This is representing type of grid of CHART
+   *
+   * @author Kooin-Shin
+   * 2020. 9. 23.
+   */
+  GRID: {
+    LINE: "LINE",
+    DOT: "DOT"
+  },
+  /**
+   * GRID_VISIBLE
+   * This is representing visibility of grid of CHART
+   *
+   * @author Kooin-Shin
+   * 2020. 9. 23.
+   */
+  GRID_VISIBLE: {
+    X: "X",
+    Y: "Y",
+    XY: "XY"
+  },
+  /**
+   * POPUP_STYLE
+   * This is representing element popup border style
+   *
+   * @author Kooin-Shin
+   * 2020. 9. 23.
+   */
+  POPUP_STYLE: {
+    RECTANGLE: "RECTANGLE",
+    ROUND: "ROUND"
+  },
+  /**
+   * PEEK_STYLE
+   * This is representing element value peek point style
+   *
+   * @author Kooin-Shin
+   * 2020. 9. 23.
+   */
+  PEEK_STYLE: {
+    CIRCLE: "CIRCLE",
+    RECTANGLE: "RECTANGLE"
+  },
+  /**
+   * SELECTION_BORDER
+   * This is representing selected element border style
+   *
+   * @author Kooin-Shin
+   * 2020. 9. 23.
+   */
+  SELECTION_BORDER: {
+    LINE: "LINE",
+    DOT: "DOT"
+  },
+  /**
+   * The place of round point
+   */
+  ROUND_PLACE: 2,
+  /**
+   * Line CHART
+   * @since JDK1.4.1
+   */
+  LINE_CHART: 1,
+  /**
+   * Bar CHART
+   * @since JDK1.4.1
+   */
+  BAR_CHART: 2,
+  /**
+   * Bar ratio CHART
+   */
+  BAR_RATIO_CHART: 3,
+  /**
+   * Circle CHART
+   * @since JDK1.4.1
+   */
+  CIRCLE_CHART: 4,
+  /**
+   * Area CHART
+   * @since JDK1.4.1
+   */
+  AREA_CHART: 5
+};
+class X {
+  static interpolate(t, e) {
+    const s = t.length;
+    let i = new Array(s);
+    for (let h = 0; h < s; h++)
+      i[h] = [e[h]];
+    for (let h = 1; h < s; h++)
+      for (let n = 0; n < s - h; n++)
+        i[n].push((i[n + 1][h - 1] - i[n][h - 1]) / (t[n + h] - t[n]));
+    return {
+      value: (h) => {
+        let n = i[0][0], l = 1;
+        for (let r = 1; r < s; r++)
+          l *= h - t[r - 1], n += l * i[0][r];
+        return n;
+      }
+    };
+  }
+}
+const Y = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  DividedDifferenceInterpolator: X
+}, Symbol.toStringTag, { value: "Module" }));
+class V {
+  static interpolate(t, e) {
+    return {
+      value: (s) => {
+        let i = t.findIndex((o) => o >= s);
+        if (i === -1) return e[e.length - 1];
+        let h = t[i - 1], n = t[i], l = e[i - 1], r = e[i];
+        return l + (r - l) * (s - h) / (n - h);
+      }
+    };
+  }
+}
+const F = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  LinearInterpolator: V
+}, Symbol.toStringTag, { value: "Module" }));
+class k {
+  interpolate(t, e) {
+    return {
+      value: (s) => {
+        let i = t.length, h = Array(i);
+        for (let n = 0; n < i; n++)
+          h[n] = [e[n]];
+        for (let n = 1; n < i; n++)
+          for (let l = 0; l < i - n; l++)
+            h[l][n] = ((s - t[l + n]) * h[l][n - 1] - (s - t[l]) * h[l + 1][n - 1]) / (t[l + n] - t[l]);
+        return h[0][i - 1];
+      }
+    };
+  }
+}
+const x = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  NevilleInterpolator: k
+}, Symbol.toStringTag, { value: "Module" }));
+class Z {
+  constructor(t, e) {
+    this.x = t, this.y = e;
+  }
+}
+class f {
+  static transform(t, e, s, i) {
+    switch (t) {
+      case "NONE":
+        break;
+      case "LINEAR":
+        return this.linearTransform(e, s, i);
+      case "SPLINE":
+        return this.splineTransform(e, s, i);
+      case "DIVIDED_DIFFERENCE":
+        return this.dividedDifferenceTransform(e, s, i);
+      case "NEVILLE":
+        return this.nevilleTransform(e, s, i);
+      default:
+        throw new Error("Not supported interpolation type: " + t);
+    }
+    return null;
+  }
+  static linearTransform(t, e, s) {
+    const h = new F().interpolate(t, e);
+    return s.map((n) => h.value(n));
+  }
+  static lerp(t, e, s) {
+    return t + (e - t) * s;
+  }
+  static dividedDifferenceTransform(t, e, s) {
+    const h = new Y().interpolate(t, e);
+    return s.map((n) => h.value(n));
+  }
+  static nevilleTransform(t, e, s) {
+    const h = new x().interpolate(t, e);
+    return s.map((n) => h.value(n));
+  }
+  static populateInterpolateWithOneType(t, e, s) {
+    return Object.values(e.getChartElementMap()).forEach((i) => {
+      i.interpolateScale = s, i.interpolationType = t;
+    }), this.populateInterpolate(e);
+  }
+  static populateInterpolate(t) {
+    const e = t.CHART_X, s = t.CHART_Y, i = t.CHART_WIDTH, h = t.CHART_HEIGHT, n = t.LIMIT, l = t.getMaximum(), r = i / t.xIndexCount;
+    return Object.values(t.getChartElementMap()).forEach((o) => {
+      try {
+        if (o.interpolationType && o.interpolateScale !== -1) {
+          const a = o.values.length, A = Array.from({ length: a }, (u, S) => S * r + e), _ = Array.from(
+            { length: a },
+            (u, S) => n < l ? s - o.values[S] * h / l : s - o.values[S] * h / n
+          ), E = a * o.interpolateScale, H = r * a / E, T = Array.from({ length: E - o.interpolateScale + 1 }, (u, S) => H * S + e), R = f.transform(o.interpolationType, A, _, T);
+          o.interpolateValues = R.map((u) => u);
+          const C = T.map((u, S) => new Z.Double(u, R[S]));
+          o.interpolates = C;
+        }
+      } catch (a) {
+        console.error(a);
+      }
+    }), t;
+  }
+}
+const g = Object.freeze({
+  LINEAR: "LINEAR",
+  SPLINE: "SPLINE",
+  LOESS: "CATMULLROM",
+  DIVIDED_DIFFERENCE: "DIVIDED_DIFFERENCE",
+  NEVILLE: "NEVILLE"
+});
+class W {
+  /**
+   * constructor
+   * @param {*} elementName 
+   * @param {*} elementColor 
+   * @param {*} values 
+   */
+  constructor(t = null, e = "black", s = []) {
+    this.elementName = t, this.elementColor = e, this.legend = t, this.legendColor = e, this.values = s.length < 1 ? [0] : s, this.shapes = [], this.legendShapes = [], this.selectedValueIndex = -1, this.selectedValue = null, this.selectedPoint = null, this.interpolationType = g.LINEAR, this.interpolateScale = -1, this.interpolateValues = [], this.interpolates = [], this.chart = null, this.chartType = null, this.mouseIndex = -1;
+  }
+  getElementName() {
+    return this.elementName;
+  }
+  setElementName(t) {
+    this.elementName = t;
+  }
+  getElementColor() {
+    return this.elementColor;
+  }
+  setElementColor(t) {
+    this.elementColor = t;
+  }
+  getLabel() {
+    return this.legend;
+  }
+  setLabel(t) {
+    this.legend = t;
+  }
+  getLabelColor() {
+    return this.legendColor;
+  }
+  setLabelColor(t) {
+    this.legendColor = t;
+  }
+  getValues() {
+    return this.values;
+  }
+  setValues(t) {
+    this.values = t;
+  }
+  setValue(t, e) {
+    this.values[t] = e;
+  }
+  getShapes() {
+    return this.shapes;
+  }
+  setShapes(t) {
+    this.shapes = t;
+  }
+  getLegendShapes() {
+    return this.legendShapes;
+  }
+  setLegendShapes(t) {
+    this.legendShapes = t;
+  }
+  addValue(t) {
+    this.values.push(t);
+  }
+  deleteValue(t) {
+    this.values.splice(t, 1);
+  }
+  getSelectedValueIndex() {
+    return this.selectedValueIndex;
+  }
+  setSelectedValueIndex(t) {
+    this.selectedValueIndex = t;
+  }
+  getSelectedValue() {
+    return this.selectedValue;
+  }
+  setSelectedValue(t) {
+    this.selectedValue = t;
+  }
+  getMouseIndex() {
+    return this.chart.mouseIndex;
+  }
+  setMouseIndex(t) {
+    this.chart.mouseIndex = t;
+  }
+  getChartType() {
+    return this.chartType;
+  }
+  setChartType(t) {
+    this.chartType = t;
+  }
+  getChart() {
+    return this.chart;
+  }
+  setChart(t) {
+    this.chart = t;
+  }
+  getSelectedPoint() {
+    return this.selectedPoint;
+  }
+  setSelectedPoint(t) {
+    this.selectedPoint = t;
+  }
+  getInterpolateScale() {
+    return this.interpolateScale;
+  }
+  setInterpolateScale(t) {
+    this.interpolateScale = t;
+  }
+  getInterpolateValues() {
+    return this.interpolateValues;
+  }
+  setInterpolateValues(t) {
+    this.interpolateValues = t;
+  }
+  getInterpolates() {
+    return this.interpolates;
+  }
+  setInterpolates(t) {
+    this.interpolates = t;
+  }
+  getInterpolationType() {
+    return this.interpolationType;
+  }
+  setInterpolationType(t) {
+    this.interpolationType = t;
+  }
+  getMax() {
+    return Math.max(...this.values);
+  }
+  toString() {
+    return `ChartElement [elementName=${this.elementName}, elementColor=${this.elementColor}, legend=${this.legend}, legendColor=${this.legendColor}, values=${this.values}, shapes=${this.shapes}, legendShapes=${this.legendShapes}, selectedValueIndex=${this.selectedValueIndex}, selectedValue=${this.selectedValue}, selectedPoint=${this.selectedPoint}, chartType=${this.chartType}, graph=${this.chart}, interpolateScale=${this.interpolateScale}, interpolateValues=${this.interpolateValues}, interpolates=${this.interpolates}, interpolationType=${this.interpolationType}]`;
+  }
+}
+class c {
+  /**
+   * Constructor
+   * @param {string} chartType
+   * @param {Array} xIndex
+   * @param {Array} yIndex
+   */
+  constructor(t = [], e = [], s = null) {
+    this.xIndex = t, this.yIndex = e, this.chartType = s, this.chart = null, this.elementMap = /* @__PURE__ */ new Map(), this.elementOrder = [], this.selectedElement = null, this.selectedIndex = -1;
+  }
+  /**
+   * Get Chart object
+   * @return {Chart}
+   */
+  getChart() {
+    return this.chart;
+  }
+  /**
+   * Set Chart object
+   * @param {Chart} chart
+   */
+  setChart(t) {
+    this.chart = t, this.elementMap.forEach((e) => e.setChart(t));
+  }
+  /**
+   * Get maximum in array
+   * @param {Array} value
+   * @return {number}
+   */
+  calMax(t) {
+    return Math.max(...t.map((e) => +e));
+  }
+  /**
+   * Get minimum in array
+   * @param {Array} value
+   * @return {number}
+   */
+  calMin(t) {
+    return Math.min(...t.map((e) => +e));
+  }
+  /**
+   * Get maximum in map
+   * @param {Map} map
+   * @return {number}
+   */
+  calMaxFromMap(t) {
+    let e = 0;
+    return t.forEach((s) => {
+      const i = Math.max(...s.getValues().map((h) => +h));
+      e = Math.max(e, i);
+    }), e;
+  }
+  /**
+   * Get minimum in map
+   * @param {Map} map
+   * @return {number}
+   */
+  calMinFromMap(t) {
+    let e = 1 / 0;
+    return t.forEach((s) => {
+      const i = Math.min(...s.getValues().map((h) => +h));
+      e = Math.min(e, i);
+    }), e;
+  }
+  /**
+   * Get chart type
+   * @return {string}
+   */
+  getChartType() {
+    return this.chartType;
+  }
+  /**
+   * Set Chart type
+   * @param {*} chartType 
+   */
+  setChartType(t) {
+    return this.chartType = t, this;
+  }
+  /**
+   * Get element count
+   * @returns {number}
+   */
+  getElementCount() {
+    return this.elementMap.size;
+  }
+  /**
+   * Get ChartElement 
+   * @param {string} elementName
+   * @return {ChartElement}
+   */
+  getChartElement(t) {
+    return this.elementMap.get(t);
+  }
+  /**
+   * Add Chart element
+   * @param {ChartElement} ge
+   */
+  addElement(t) {
+    this.addChartElement(t.getElementName(), t);
+  }
+  /**
+   * Add Chart element
+   * @param {Object} elementName
+   * @param {ChartElement} ge
+   */
+  addChartElement(t, e) {
+    e.setChartType(this.chartType), e.setChart(this.chart), this.elementMap.set(t, e), this.elementOrder.includes(t) || this.elementOrder.push(e.getElementName());
+  }
+  /**
+   * Remove Chart element
+   * @param {Object} elementName
+   * @return {ChartElement}
+   */
+  removeChartElement(t) {
+    return this.elementOrder = this.elementOrder.filter((e) => e !== t), this.elementMap.delete(t);
+  }
+  /**
+   * Circulate elements
+   * @param {boolean} forword
+   */
+  circulateElement(t) {
+    if (t) {
+      const e = this.elementOrder.shift();
+      this.elementOrder.push(e);
+    } else {
+      const e = this.elementOrder.pop();
+      this.elementOrder.unshift(e);
+    }
+  }
+  /**
+   * Sorting by last value of element
+   */
+  orderElementByLastValue() {
+    this.elementOrder = Array.from(this.elementMap.values()).sort((t, e) => {
+      const s = e.getValues().slice(-1)[0] || 0, i = t.getValues().slice(-1)[0] || 0;
+      return s - i;
+    }).map((t) => t.getElementName());
+  }
+  /**
+   * Get element order
+   * @return {Array}
+   */
+  getElementOrder() {
+    return this.elementOrder;
+  }
+  /**
+   * Get x indexes
+   * @return {Array}
+   */
+  getXIndex() {
+    return this.xIndex;
+  }
+  /**
+   * Get minimum size of index
+   * @return {number}
+   */
+  getMinXIndex() {
+    return this.elementMap.size === 0 ? 0 : Math.min(...Array.from(this.elementMap.values()).map((t) => t.getValues().length));
+  }
+  /**
+   * Get maximum size of index
+   * @returns {number}
+   */
+  getMaxXIndex() {
+    return this.elementMap.size === 0 ? 0 : Math.max(...Array.from(this.elementMap.values()).map((t) => t.getValues().length));
+  }
+  /**
+   * Get y indexes
+   * @return {Array}
+   */
+  getYIndex() {
+    return this.yIndex;
+  }
+  /**
+   * Get Chart element value to double value
+   * @param {string} elementName
+   * @param {number} valueIndex
+   * @return {number}
+   */
+  getChartElementValue(t, e) {
+    const s = this.elementMap.get(t).getValues();
+    if (s.length > e)
+      return s[e];
+    throw new Error("Given index value is over than element value size.");
+  }
+  /**
+   * Get Chart element map
+   * @return
+   */
+  getChartElementMap() {
+    return this.elementMap;
+  }
+  /**
+   * Get maximum value of elements
+   * @return {number}
+   */
+  getMaximum() {
+    return this.calMaxFromMap(this.elementMap);
+  }
+  /**
+   * Get minimum value of elements
+   * @return {number}
+   */
+  getMin() {
+    return this.calMinFromMap(this.elementMap);
+  }
+  /**
+   * Set element values
+   * @param {string} elementName
+   * @param {Array} values
+   */
+  setValues(t, e) {
+    this.elementMap.get(t).setValues(e);
+  }
+  /**
+   * Set X index
+   * @param {Array} xIndex
+   */
+  setXIndex(t) {
+    this.xIndex = t;
+  }
+  /**
+   * Set y index
+   * @param {Array} yIndex
+   */
+  setYIndex(t) {
+    this.yIndex = t;
+  }
+  /**
+   * Get selected Chart element
+   * @return {ChartElement}
+   */
+  getSelectedElement() {
+    return this.selectedElement;
+  }
+  /**
+   * Set selected Chart element
+   * @param {ChartElement} selectedElement
+   */
+  setSelectedElement(t) {
+    this.selectedElement = t;
+  }
+  /**
+   * Get selected index
+   * @return {number}
+   */
+  getSelectedIndex() {
+    return this.selectedIndex;
+  }
+  /**
+   * Set selected index
+   * @param {number} index
+   */
+  setSelectedIndex(t) {
+    this.selectedIndex = t;
+  }
+  /**
+   * Create and get sample ChartElements object
+   * @param {string} type
+   * @return {ChartElements}
+   */
+  static newSimpleChartElements(t) {
+    const e = [];
+    for (let r = 0; r < 17; r++)
+      e.push(r % 2 === 0 ? `${r}` : null);
+    const s = [50, 80, 500], i = ["Kafa", "elastic search", "Oracle", "Maria", "S3"], h = [
+      { r: 130, g: 180, b: 130 },
+      { r: 180, g: 130, b: 130 },
+      { r: 180, g: 180, b: 140 },
+      { r: 150, g: 150, b: 150 },
+      { r: 150, g: 200, b: 158 }
+    ], n = [
+      [44, 35, 0, 32, 0, 33, 29, 43, 25, 22, 32, 43, 23],
+      [43, 25, 10, 32, 0, 23, 52, 32, 32, 23, 54, 23, 48, 20, 60, 140, 500, 10],
+      [500, 93, 0, 49, 0, 24, 93, 63, 92, 84, 69, 46, 28],
+      [300, 25, 0, 32, 0, 23, 9, 19, 32, 70, 93, 29, 15],
+      [20, 36, 0, 24, 22, 37, 33, 54, 23, 48, 53, 150, 22]
+    ], l = new c(t, e, s);
+    return i.forEach((r, o) => {
+      const a = new W(r, h[o], r, h[o], n[o]);
+      l.addElement(a);
+    }), l;
+  }
+}
+class U {
+  /**
+   * Constructor
+   * @param {*} chartElements 
+   * @param {*} title 
+   */
+  constructor(t, e, s = null, i = "") {
+    console.log("canvas width: " + t + "   canvas height: " + e), this.CANVAS_WIDTH = t, this.CANVAS_HEIGHT = e, this.TITLE = i, this.ORIGIN_WIDTH = 0, this.ORIGIN_HEIGHT = 0, this.SCALED_WIDTH = 8, this.SCALED_HEIGHT = 6, this.INDENT_LEFT = 50, this.INDENT_RIGHT = 50, this.INDENT_TOP = 30, this.INDENT_BOTTOM = 30, this.IS_SHOW_GRID_Y = !0, this.IS_SHOW_GRID_X = !0, this.IS_SHOW_INDEX_Y = !0, this.IS_SHOW_INDEX_X = !0, this.IS_SHOW_CHART_XY = !0, this.IS_SHOW_TITLE = !0, this.IS_SHOW_TITLE_SHADOW = !1, this.IS_SHOW_BG = !0, this.IS_SHOW_LEGEND = !0, this.IS_SHOW_LEGEND_BACKGROUND = !0, this.IS_SHOW_POPUP = !0, this.IS_SHOW_POPUP_BACKGROUND = !0, this.IS_SHOW_SHADOW = !0, this.IS_SHOW_CANVAS_BORDER = !0, this.IS_SHOW_CHART_BORDER = !0, this.IS_SHOW_BORDER = !0, this.IS_CANVAS_FIXED = !0, this.IS_SELECTION_ENABLE = !0, this.IS_SHOW_PEAK = !0, this.IS_SHOW_ELEMENT_NAME = !1, this.CHART_ALPHA = 1, this.CHART_BG_ALPHA = 1, this.CHART_XY_ALPHA = 0.5, this.CHART_BORDER_ALPHA = 0.8, this.CHART_XY_COLOR = "rgb(50,50,50)", this.CHART_BG_COLOR = "rgb(255,255,255)", this.CHART_BORDER_COLOR = "rgb(73, 72, 72)", this.CHART_WIDTH = this.CANVAS_WIDTH - (this.INDENT_LEFT + this.INDENT_RIGHT), this.CHART_HEIGHT = this.CANVAS_HEIGHT - (this.INDENT_TOP + this.INDENT_BOTTOM), this.CHART_BORDER_SIZE = 1.5, this.CHART_XY_SIZE = 3, this.LEGEND_BG_ALPHA = 0.3, this.LEGEND_FONT_ALPHA = 1, this.LEGEND_FONT_SIZE = 10, this.LEGEND_BG_COLOR = "rgb(200,200,220)", this.TITLE_FONT_ALPHA = 0.3, this.TITLE_FONT_SIZE = 15, this.TITLE_FONT_COLOR = "rgb(120,120,170)", this.CANVAS_BG_ALPHA = 1, this.CANVAS_BORDER_SIZE = 2, this.CANVAS_BG_COLOR = "rgb(255, 255, 255)", this.CANVAS_BORDER_COLOR = "rgb(200,200,230)", this.INDEX_Y_UNIT = "", this.INDEX_FONT_COLOR = "rgb(100,100,100)", this.INDEX_FONT_ALPHA = 0.7, this.INDEX_FONT_SIZE = 10, this.GRID_ALPHA = 0.3, this.GRID_SIZE = 0.3, this.GRID_STYLE = I.GRID.LINE, this.GRID_X_COLOR = "rgb(100,120,100)", this.GRID_Y_COLOR = "rgb(100,120,100)", this.SHADOW_ALPHA = 0.3, this.SHADOW_DIST = 5, this.SHADOW_ANGLE = 300, this.SHADOW_COLOR = "rgb(107, 105, 105)", this.POPUP = I.POPUP_STYLE.ROUND, this.POPUP_BG_ALPHA = 0.6, this.POPUP_BG_COLOR = "rgb(255, 255, 255)", this.POPUP_FONT_COLOR = "rgb(100,100,100)", this.BORDER_SIZE = 2, this.BORDER_COLOR = "hsl(0, 1.20%, 52.00%)", this.SEL_BORDER = I.SELECTION_BORDER.LINE, this.VALUE_DIVISION_RATIO = 1, this.FONT_NAME = "Arial", this.FONT_SIZE = 10, this.FONT_WEIGHT = "bold", this.WHEEL_DELTA = 0.9, this.SELECTED_COLOR_DENSITY = 10, this.listenerList = [], this.INTERPOLATE_TYPE = null, this.INTERPOLATE_SCALE = 0.3, this.ROUND_PLACE = I.ROUND_PLACE, this.DEFAULT_COLOR = "rgb(220,220,220)", this.PEEK_COLOR = "grey", this.ORIGIN_WIDTH === 0 && this.ORIGIN_HEIGHT === 0 && (this.ORIGIN_WIDTH = this.CANVAS_WIDTH, this.ORIGIN_HEIGHT = this.CANVAS_WIDTH), this.X_INDEX = [], this.Y_INDEX = [], this.CHART_TYPE = null, this.PEEK_STYLE = I.PEEK_STYLE.RECTANGLE, this.LIMIT = 0;
+    try {
+      s instanceof c ? this.CHART_ELEMENTS = s : (Object.keys(s).forEach((h) => {
+        this[h.toUpperCase()] = s[h];
+      }), this.CHART_ELEMENTS = new c(s.xIndex, s.yIndex), s.elements && s.elements && Object.entries(s.elements).forEach(([h, n]) => {
+        const l = new W(h, n.color, n.values);
+        this.CHART_ELEMENTS.addElement(l);
+      })), this.LIMIT = this.LIMIT < this.CHART_ELEMENTS.getMaximum() ? this.CHART_ELEMENTS.getMaximum() : this.LIMIT, this.CHART_ELEMENTS.setChart(this);
+    } catch (h) {
+      throw new Error(h.message);
+    }
+    console.log("Chart is initialized...........................................");
+  }
+  /**
+   * Get 
+   * @param {*} chartType 
+   * @returns 
+   */
+  static getChartTypeString(t) {
+    let e;
+    switch (t) {
+      case I.CHART.LINE:
+        e = "LINE CHART";
+        break;
+      case I.CHART.BAR:
+        e = "BAR CHART";
+        break;
+      case I.BAR_RATIO_CHART:
+        e = "BAR RATIO CHART";
+        break;
+      case I.CHART.CIRCLE:
+        e = "CIRCLE CHART";
+        break;
+      case I.CHART.AREA:
+        e = "AREA CHART";
+        break;
+      default:
+        throw new Error("Specified Chart type does not exist!!!");
+    }
+    return e;
+  }
+  /**
+   * Set elements interpolation setting
+   * @param {*} interpolateType 
+   * @param {*} interpolateScale 
+   */
+  setElementsInterpolates(t, e) {
+    this.INTERPOLATE_TYPE = t, this.INTERPOLATE_SCALE = e, f.populateInterpolateWithOneType(t, this.CHART_ELEMENTS, e);
+  }
+  /**
+   * Get contrast color 
+   * @param {*} color 
+   * @returns 
+   */
+  getContrastColor(t) {
+    const e = Math.min(255, 255 - t.r), s = Math.min(255, 255 - t.g), i = Math.min(255, 255 - t.b);
+    return { r: e, g: s, b: i };
+  }
+  setInterpolateType(t) {
+    this.INTERPOLATE_TYPE = t;
+  }
+  setInterPolateScale(t) {
+    this.INTERPOLATE_SCALE = t;
+  }
+  getChartType() {
+    return this.CHART_ELEMENTS.getChartType();
+  }
+  getChartX() {
+    return this.CHART_X;
+  }
+  getChartY() {
+    return this.CHART_Y;
+  }
+  getImageWidth() {
+    return this.CANVAS_WIDTH;
+  }
+  getImageHeight() {
+    return this.CANVAS_HEIGHT;
+  }
+  getLabelX() {
+    return this.LEGEND_X;
+  }
+  getLabelY() {
+    return this.LEGEND_Y;
+  }
+  getTitle() {
+    return this.TITLE;
+  }
+  getShowTitleShadow() {
+    return this.IS_SHOW_TITLE_SHADOW;
+  }
+  getChartWidth() {
+    return this.CHART_WIDTH;
+  }
+  getChartHeight() {
+    return this.CHART_HEIGHT;
+  }
+  isImgFixed() {
+    return this.IS_CANVAS_FIXED;
+  }
+  getRoundDigits() {
+    return this.ROUND_PLACE;
+  }
+  setRoundDigits(t) {
+    this.ROUND_PLACE = t;
+  }
+  setShowGridY(t) {
+    this.IS_SHOW_GRID_Y = t;
+  }
+  setShowGridX(t) {
+    this.IS_SHOW_GRID_X = t;
+  }
+  setShowIndexX(t) {
+    this.IS_SHOW_INDEX_X = t;
+  }
+  setShowIndexY(t) {
+    this.IS_SHOW_INDEX_Y = t;
+  }
+  setShowChartXY(t) {
+    this.IS_SHOW_CHART_XY = t;
+  }
+  setShowTitle(t) {
+    this.IS_SHOW_TITLE = t;
+  }
+  setShowTitleShadow(t) {
+    this.IS_SHOW_TITLE_SHADOW = t;
+  }
+  setShowBg(t) {
+    this.IS_SHOW_BG = t;
+  }
+  setShowLabel(t) {
+    this.IS_SHOW_LEGEND = t;
+  }
+  setShowLabelBackground(t) {
+    this.IS_SHOW_LEGEND_BACKGROUND = t;
+  }
+  setShowPopup(t) {
+    this.IS_SHOW_POPUP = t;
+  }
+  setShowPopupBackgraound(t) {
+    this.IS_SHOW_POPUP_BACKGROUND = t;
+  }
+  setShowShadow(t) {
+    this.IS_SHOW_SHADOW = t;
+  }
+  setShowImgBorder(t) {
+    this.IS_SHOW_CANVAS_BORDER = t;
+  }
+  setShowChartBorder(t) {
+    this.IS_SHOW_CHART_BORDER = t;
+  }
+  setShowBorder(t) {
+    this.IS_SHOW_BORDER = t;
+  }
+  setImgFixed(t) {
+    this.IS_CANVAS_FIXED = t;
+  }
+  setSelectionEnable(t) {
+    this.IS_SELECTION_ENABLE = t;
+  }
+  getSelectionEnable() {
+    return this.IS_SELECTION_ENABLE;
+  }
+  setShowPeak(t) {
+    this.IS_SHOW_PEAK = t;
+  }
+  getShowPeak() {
+    return this.IS_SHOW_PEAK;
+  }
+  setPeakStyle(t) {
+    this.PEAK_STYLE = t;
+  }
+  getPeakStyle() {
+    return this.PEAK_STYLE;
+  }
+  setShowElementName(t) {
+    this.IS_SHOW_ELEMENT_NAME = t;
+  }
+  getShowElementName() {
+    return this.IS_SHOW_ELEMENT_NAME;
+  }
+  setImgBgAlpha(t) {
+    this.CANVAS_BG_ALPHA = t;
+  }
+  setChartBgAlpha(t) {
+    this.CHART_BG_ALPHA = t;
+  }
+  setTitleFontAlpha(t) {
+    this.TITLE_FONT_ALPHA = t;
+  }
+  setChartXYAlpha(t) {
+    this.CHART_XY_ALPHA = t;
+  }
+  setIndexFontAlpha(t) {
+    this.INDEX_FONT_ALPHA = t;
+  }
+  setGridAlpha(t) {
+    this.GRID_ALPHA = t;
+  }
+  setShadowAlpha(t) {
+    this.SHADOW_ALPHA = t;
+  }
+  setChartAlpha(t) {
+    this.CHART_ALPHA = t;
+  }
+  setLabelBgAlpha(t) {
+    this.LEGEND_BG_ALPHA = t;
+  }
+  setTitleFontSize(t) {
+    this.TITLE_FONT_SIZE = t;
+  }
+  setLabelFontSize(t) {
+    this.LEGEND_FONT_SIZE = t;
+  }
+  setIndexFontSize(t) {
+    this.INDEX_FONT_SIZE = t;
+  }
+  setShadowDist(t) {
+    this.SHADOW_DIST = t;
+  }
+  setShadowAngle(t) {
+    this.SHADOW_ANGLE = t;
+  }
+  setImgBorderSize(t) {
+    this.CANVAS_BORDER_SIZE = t;
+  }
+  setChartBorderSize(t) {
+    this.CHART_BORDER_SIZE = t;
+  }
+  setBorderSize(t) {
+    this.BORDER_SIZE = t;
+  }
+  setChartXYSize(t) {
+    this.CHART_XY_SIZE = t;
+  }
+  setGridSize(t) {
+    this.GRID_SIZE = t;
+  }
+  setSelectionColorDensity(t) {
+    this.SELECTED_COLOR_DENSITY = t;
+  }
+  getSelectionColorDensity() {
+    return this.SELECTED_COLOR_DENSITY;
+  }
+  setGridStyle(t) {
+    this.GRID_STYLE = t;
+  }
+  setTitle(t) {
+    this.TITLE = t;
+  }
+  getLimit() {
+    return this.LIMIT;
+  }
+  setLimit(t) {
+    this.LIMIT = t;
+  }
+  getIndentTop() {
+    return this.INDENT_TOP;
+  }
+  getIndentLeft() {
+    return this.INDENT_LEFT;
+  }
+  getIndentBottom() {
+    return this.INDENT_BOTTOM;
+  }
+  getIndentRight() {
+    return this.INDENT_RIGHT;
+  }
+  setValueDivisionRatio(t) {
+    this.VALUE_DIVISION_RATIO = t;
+  }
+  getValueDivisionRatio() {
+    return this.VALUE_DIVISION_RATIO;
+  }
+  setUnit(t) {
+    this.INDEX_Y_UNIT = t;
+  }
+  setIndent(t, e, s, i) {
+    this.INDENT_TOP = t, this.INDENT_LEFT = e, this.INDENT_BOTTOM = s, this.INDENT_RIGHT = i, this.CHART_WIDTH = this.CANVAS_WIDTH - (this.INDENT_LEFT + this.INDENT_RIGHT), this.CHART_HEIGHT = this.CANVAS_HEIGHT - (this.INDENT_TOP + this.INDENT_BOTTOM), this.CHART_X = this.CANVAS_WIDTH - (this.INDENT_RIGHT + this.CHART_WIDTH), this.CHART_Y = this.CANVAS_HEIGHT - this.INDENT_BOTTOM;
+  }
+  setTopIndent(t) {
+    this.setIndent(t, this.INDENT_LEFT, this.INDENT_BOTTOM, this.INDENT_RIGHT);
+  }
+  setLeftIndent(t) {
+    this.setIndent(this.INDENT_TOP, t, this.INDENT_BOTTOM, this.INDENT_RIGHT);
+  }
+  setBottomIndent(t) {
+    this.setIndent(this.INDENT_TOP, this.INDENT_LEFT, t, this.INDENT_RIGHT);
+  }
+  setRightIndent(t) {
+    this.setIndent(this.INDENT_TOP, this.INDENT_LEFT, this.INDENT_BOTTOM, t);
+  }
+  setImgSize(t, e) {
+    this.CANVAS_WIDTH = t, this.CANVAS_HEIGHT = e;
+  }
+  getWheelDelta() {
+    return this.WHEEL_DELTA;
+  }
+  setWheelDelta(t) {
+    this.WHEEL_DELTA = t;
+  }
+  getPopupStyle() {
+    return this.POPUP;
+  }
+  setPopupStyle(t) {
+    this.POPUP = t;
+  }
+  getSelectionBorder() {
+    return this.SEL_BORDER;
+  }
+  setSelectionBorder(t) {
+    this.SEL_BORDER = t;
+  }
+  getChartElements() {
+    return this.CHART_ELEMENTS;
+  }
+  // Setters
+  setImgBgColor(t) {
+    this.CANVAS_BG_COLOR = t;
+  }
+  setImgBorderColor(t) {
+    this.CANVAS_BORDER_COLOR = t;
+  }
+  setChartBgColor(t) {
+    this.CHART_BG_COLOR = t;
+  }
+  setChartBorderColor(t) {
+    this.CHART_BORDER_COLOR = t;
+  }
+  setBorderColor(t) {
+    this.BORDER_COLOR = t;
+  }
+  setLabelBgColor(t) {
+    this.LEGEND_BG_COLOR = t;
+  }
+  setTitleFontColor(t) {
+    this.TITLE_FONT_COLOR = t;
+  }
+  setIndexFontColor(t) {
+    this.INDEX_FONT_COLOR = t;
+  }
+  setChartXYColor(t) {
+    this.CHART_XY_COLOR = t;
+  }
+  setGridXColor(t) {
+    this.GRID_X_COLOR = t;
+  }
+  setGridYColor(t) {
+    this.GRID_Y_COLOR = t;
+  }
+  setShadowColor(t) {
+    this.SHADOW_COLOR = t;
+  }
+  setDefaultColor(t) {
+    this.DEFAULT_COLOR = t;
+  }
+  setPeekColor(t) {
+    this.PEEK_COLOR = t;
+  }
+  // Getters
+  getImgBgColor() {
+    return this.CANVAS_BG_COLOR;
+  }
+  getImgBorderColor() {
+    return this.CANVAS_BORDER_COLOR;
+  }
+  getChartBgColor() {
+    return this.CHART_BG_COLOR;
+  }
+  getChartBorderColor() {
+    return this.CHART_BORDER_COLOR;
+  }
+  getBorderColor() {
+    return this.BORDER_COLOR;
+  }
+  getLabelBgColor() {
+    return this.LEGEND_BG_COLOR;
+  }
+  getTitleFontColor() {
+    return this.TITLE_FONT_COLOR;
+  }
+  getIndexFontColor() {
+    return this.INDEX_FONT_COLOR;
+  }
+  getChartXYColor() {
+    return this.CHART_XY_COLOR;
+  }
+  getGirdXColor() {
+    return this.GRID_X_COLOR;
+  }
+  getGridYColor() {
+    return this.GRID_Y_COLOR;
+  }
+  getShadowColor() {
+    return this.SHADOW_COLOR;
+  }
+  getDefaultColor() {
+    return this.DEFAULT_COLOR;
+  }
+  getPeekColor() {
+    return this.PEEK_COLOR;
+  }
+  getChartSelectionListenerList() {
+    return this.listenerList;
+  }
+  addChartSelectionListener(t) {
+    this.listenerList.includes(t) && this.removeChartSelectionListener(t), this.listenerList.push(t);
+  }
+  removeChartSelectionListener(t) {
+    this.listenerList = this.listenerList.filter((e) => e !== t);
+  }
+}
+class L {
+  /**
+   * constructor
+   * @param {} points 
+   */
+  constructor(t) {
+    this.points = t, this.bounds = this.getBounds();
+  }
+  /**
+   * Get bounds (bounding box)
+   * @returns 
+   */
+  getBounds() {
+    let t = Math.min(...this.points.map((h) => h.x)), e = Math.min(...this.points.map((h) => h.y)), s = Math.max(...this.points.map((h) => h.x)), i = Math.max(...this.points.map((h) => h.y));
+    return { x: t, y: e, width: s - t, height: i - e };
+  }
+  /**
+   * Scale the polygon around the center
+   * @param {*} scale 
+   */
+  scale(t) {
+    const e = this.getBounds(), s = e.x + e.width / 2, i = e.y + e.height / 2;
+    this.points = this.points.map((h) => {
+      let n = h.x > s ? h.x + t : h.x - t, l = h.y > i ? h.y + t : h.y - t;
+      return { x: n, y: l };
+    }), this.bounds = this.getBounds();
+  }
+  /**
+   * Check if a point (x, y) is inside the polygon using the Ray-Casting Algorithm
+   * 
+   * @param {number} x - X coordinate of the point
+   * @param {number} y - Y coordinate of the point
+   * @returns {boolean} - True if point is inside, otherwise false
+   */
+  contains(t, e) {
+    let s = !1, i = this.points.length;
+    for (let h = 0, n = i - 1; h < i; n = h++) {
+      let l = this.points[h].x, r = this.points[h].y, o = this.points[n].x, a = this.points[n].y;
+      r > e != a > e && t < (o - l) * (e - r) / (a - r) + l && (s = !s);
+    }
+    return s;
+  }
+}
+class O extends U {
+  /**
+   * Constructor
+   * @param {*} canvas 
+   * @param {*} chartElements 
+   * @param {*} title 
+   */
+  constructor(t = null, e = null, s = "") {
+    if (super(t.width, t.height, e, s), !t)
+      throw new Error("Canvas is must specified on parameter of AbstractChart obejct!!!");
+    this.startOffsetX = 0, this.startOffsetY = 0, this.selectedElement = null, this.elementHover = null, this.colorPickerOpen = !1, this.selectedCallback = [], this.mouseX = -1, this.mouseY = -1, this.canvas = t, this.ctx = this.canvas.getContext("2d"), this.offscreenCanvas || (this.offscreenCanvas = document.createElement("canvas"), this.offscreenCtx = this.offscreenCanvas.getContext("2d"), this.offscreenCanvas.width = t.width, this.offscreenCanvas.height = t.height, this.offscreenCtx.clearRect(0, 0, t.width, t.height), this.drawChartBackground(this.offscreenCtx), this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)), this.canvas.addEventListener("resize", (i) => {
+      const h = t.getBoundingClientRect();
+      this.resizeImage(h.width, h.height);
+    }), this.canvas.addEventListener("mousedown", (i) => {
+      this.mouseX = i.offsetX - 5, this.mouseY = i.offsetY - 5;
+      const h = this.isPointOnShapes(this.mouseX, this.mouseY);
+      i.button === 0 ? this.selectedElement ? h && h.isInLegend ? this.selectedElement = h : (this.setValueToMouse(this.mouseX, this.mouseY), this.selectedElement.setSelectedPoint({ x: this.mouseX, y: this.mouseY }), this.dispatchToSelectedCallback(this.selectedElement)) : h || h && h.isInLegend ? this.selectedElement = h : this.selectedElement = null : i.button === 2 && (h && h.isInLegend ? this.showColorPicker(i, h) : this.selectedElement = null), this.drawChart();
+    }), this.canvas.addEventListener("mouseup", (i) => {
+    }), this.canvas.addEventListener("mousemove", (i) => {
+      this.mouseX = i.offsetX - 5, this.mouseY = i.offsetY - 5;
+      const h = this.isPointOnShapes(this.mouseX, this.mouseY);
+      this.selectedElement || (h !== null ? h.isInLegend ? (this.elementHover && this.elementHover !== h || !this.elementHover) && (this.elementHover = h) : (this.elementHover && this.elementHover !== h || !this.elementHover) && (this.elementHover = h) : this.elementHover = null), clearTimeout(this.scrollTimeout), this.scrollTimeout = setTimeout(() => {
+        this.drawChart();
+      }, 7);
+    }), this.canvas.addEventListener("wheel", (i) => {
+      i.preventDefault(), this.mouseX = i.offsetX - 5, this.mouseY = i.offsetY - 5;
+      const h = i.deltaY > 0 ? -this.WHEEL_DELTA : this.WHEEL_DELTA;
+      if (this.selectedElement) {
+        const n = this.getMouseIndex(this.mouseX, this.mouseY), l = this.getChartType() === I.CHART.CIRCLE ? 0 : n, r = this.selectedElement.getValues()[l] + h;
+        r > 0 && (this.selectedElement.getValues()[l] = r, this.selectedElement.setSelectedValue(r), this.selectedElement.setSelectedPoint({ x: this.mouseX, y: this.mouseY }), this.dispatchToSelectedCallback(this.selectedElement));
+      }
+      clearTimeout(this.scrollTimeout), this.scrollTimeout = setTimeout(() => {
+        this.drawChart();
+      }, 7);
+    }, { passive: !1 }), this.canvas.addEventListener("dblclick", (i) => {
+    }), this.canvas.addEventListener("visibilitychange", (i) => () => {
+      document.visibilityState === "visible" && this.drawChart();
+    }), this.canvas.addEventListener("contextmenu", (i) => {
+      i.preventDefault();
+    });
+  }
+  /**
+   * Draw basic chart elements
+   * @param {*} offscreenCtx 
+   */
+  drawChartBackground(t) {
+    this.initChart(this.CANVAS_WIDTH, this.CANVAS_HEIGHT), this.sweepCanvas(this.CANVAS_WIDTH, this.CANVAS_HEIGHT, t), this.drawGraphBackground(this.CHART_WIDTH, this.CHART_HEIGHT, 12, t);
+    const e = this.CHART_ELEMENTS.getMaximum(), s = this.CHART_ELEMENTS.getXIndex(), i = this.CHART_ELEMENTS.getYIndex();
+    if (this.IS_SHOW_BG && this.drawChartBg(t), this.IS_SHOW_CANVAS_BORDER && this.drawBgBorder(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT, t), this.IS_SHOW_CHART_BORDER && this.drawChartBorder(this.CHART_X, this.CHART_Y, this.CHART_WIDTH, this.CHART_HEIGHT, t), this.IS_SHOW_CHART_XY && this.drawXY(this.CHART_X, this.CHART_Y, t), this.IS_SHOW_INDEX_X && this.drawLabelX(s, t), this.IS_SHOW_INDEX_Y && this.drawLabelY(this.CHART_ELEMENTS.getYIndex(), e, t), this.IS_SHOW_GRID_X && this.drawGridX(s, this.GRID_STYLE, t), this.IS_SHOW_GRID_Y && this.drawGridY(i, this.GRID_STYLE, e, t), this.IS_SHOW_GRID_Y && this.drawGridY(this.CHART_ELEMENTS.getYIndex(), I.GRID.DOT, e, t), this.IS_SHOW_TITLE && (this.drawTitle(this.CHART_X, this.CHART_Y, this.TITLE, this.TITLE_FONT_SIZE, t), this.drawRight(t)), this.IS_SHOW_LEGEND) {
+      const h = this.CHART_ELEMENTS.getElementOrder().map((n) => this.CHART_ELEMENTS.getChartElementMap().get(n));
+      this.drawLegend(h, t);
+    }
+  }
+  /**
+   * Show color picker
+   * @param {*} event 
+   * @param {*} element 
+   */
+  showColorPicker(t, e) {
+    this.colorDiv = document.createElement("div"), this.colorDiv.style.position = "absolute", this.colorDiv.style.padding = "5px", this.colorDiv.style.border = "2px solid black", this.colorDiv.style.borderRadius = "5px", this.colorDiv.style.backgroundColor = "#fff", this.colorDiv.style.boxShadow = "0px 0px 5px rgba(0,0,0,0.3)", this.colorDiv.style.display = "none", this.colorInput = document.createElement("input"), this.colorInput.setAttribute("type", "color"), this.colorInput.style.border = "none", this.colorInput.style.width = "40px", this.colorInput.style.height = "40px", this.colorInput.style.cursor = "pointer", this.colorInput.value = this.toHexColorString(this.extractRGB(e.getElementColor())), this.colorDiv.appendChild(this.colorInput), document.body.appendChild(this.colorDiv), this.colorDiv.addEventListener("contextmenu", (s) => {
+      s.preventDefault();
+    }), this.colorInput.addEventListener("change", (s) => {
+      this.colorDiv.style.display = "none", e.setElementColor(s.target.value);
+      for (const i of this.selectedCallback)
+        i(e);
+      this.drawChart();
+    }), this.colorDiv.addEventListener("mouseout", () => {
+      this.colorDiv.style.display = "none", this.colorPickerOpen = !1;
+    }), this.colorDiv.style.left = `${t.pageX - 10}px`, this.colorDiv.style.top = `${t.pageY - 10}px`, this.colorDiv.style.display = "block";
+  }
+  /**
+   * Initialize Chart
+   * @param {*} width 
+   * @param {*} height 
+   * @returns 
+   */
+  initChart(t, e) {
+    t <= 0 || e <= 0 || (this.setImgSize(t, e), this.CHART_WIDTH = this.CANVAS_WIDTH - (this.INDENT_LEFT + this.INDENT_RIGHT), this.CHART_HEIGHT = this.CANVAS_HEIGHT - (this.INDENT_TOP + this.INDENT_BOTTOM), this.CHART_X = this.CANVAS_WIDTH - (this.INDENT_RIGHT + this.CHART_WIDTH), this.CHART_Y = this.CANVAS_HEIGHT - this.INDENT_BOTTOM, this.LEGEND_X = this.CHART_X + this.CHART_WIDTH - this.LEGEND_FONT_SIZE, this.LEGEND_Y = this.CHART_Y - this.CHART_HEIGHT + this.LEGEND_FONT_SIZE, this.setElementsInterpolates(this.INTERPOLATE_TYPE, this.INTERPOLATE_SCALE));
+  }
+  /**
+   * Sweep background
+   * @param {*} width 
+   * @param {*} height 
+   */
+  sweepCanvas(t, e, s = this.ctx) {
+    s.beginPath(), s.globalAlpha = this.CHART_BG_ALPHA, s.fillStyle = this.CANVAS_BG_COLOR, s.fillRect(0, 0, t, e);
+  }
+  /**
+   * Spread row col dots
+   * @param {*} width 
+   * @param {*} height 
+   * @param {*} ctx 
+   */
+  drawGraphBackground(t, e, s = 12, i = this.ctx) {
+    i.beginPath(), i.lineWidth = 1, i.setLineDash([3, 3]), i.strokeStyle = this.BORDER_COLOR, i.globalAlpha = this.GRID_ALPHA;
+    const h = this.CHART_WIDTH / s * Math.pow(10, 2) / Math.pow(10, 2), n = this.CHART_HEIGHT / s * Math.pow(10, 2) / Math.pow(10, 2);
+    for (let l = 0; l < n; l++)
+      i.moveTo(this.CHART_X, this.CHART_Y - l * s), i.lineTo(this.CHART_X + this.CHART_WIDTH, this.CHART_Y - l * s);
+    for (let l = 0; l < h; l++)
+      i.moveTo(this.CHART_X + l * s, this.CHART_Y), i.lineTo(this.CHART_X + l * s, this.CHART_Y - this.CHART_HEIGHT);
+    i.setLineDash([]), i.stroke();
+  }
+  /**
+   * Draw background rectangle
+   * @param {*} x 
+   * @param {*} y 
+   * @param {*} width 
+   * @param {*} height 
+   * @param {*} bgColor 
+   */
+  drawChartBg(t, e, s, i, h = this.ctx) {
+    h.beginPath(), h.globalAlpha = this.CHART_BG_ALPHA, h.fillStyle = this.CHART_BG_COLOR, h.fillRect(t, e, s, i);
+  }
+  /**
+   * Draw background border
+   * @param {*} x 
+   * @param {*} y 
+   * @param {*} width 
+   * @param {*} height 
+   */
+  drawBgBorder(t, e, s, i, h = this.ctx) {
+    h.beginPath(), h.globalAlpha = this.CANVAS_BG_ALPHA, h.strokeStyle = this.CANVAS_BORDER_COLOR, h.lineWidth = this.CANVAS_BORDER_SIZE, h.strokeRect(t + h.lineWidth / 2, e - h.lineWidth / 2, s - h.lineWidth, i - h.lineWidth);
+  }
+  /**
+   * Draw chart border
+   * @param {*} x 
+   * @param {*} y 
+   * @param {*} width 
+   * @param {*} height 
+   */
+  drawChartBorder(t, e, s, i, h = this.ctx) {
+    h.beginPath(), h.globalAlpha = this.CHART_BORDER_ALPHA, h.strokeStyle = this.CHART_BG_COLOR, h.lineWidth = this.CHART_BORDER_SIZE, h.strokeRect(t, e - i, s - h.lineWidth, i - h.lineWidth);
+  }
+  /**
+   * Draw X, Y axis
+   * @param {*} x 
+   * @param {*} y 
+   */
+  drawXY(t, e, s = this.ctx) {
+    s.beginPath(), s.globalAlpha = this.CHART_XY_ALPHA, s.strokeStyle = this.CHART_XY_COLOR, s.lineWidth = this.CHART_XY_SIZE, s.moveTo(t, e), s.lineTo(t, e - this.CHART_HEIGHT), s.moveTo(t, e), s.lineTo(t + this.CHART_WIDTH, e), s.stroke();
+  }
+  /**
+   * To draw title
+   * @param {string} title
+   * @param {number} fontSize
+   */
+  drawTitle(t, e, s, i, h = this.ctx) {
+    h.beginPath(), h.globalAlpha = this.TITLE_FONT_ALPHA;
+    const n = this.CHART_WIDTH * this.SCALED_WIDTH / (this.CANVAS_WIDTH * 6), r = this.setFont(s, n * i, "bold", this.FONT_NAME, h).actualBoundingBoxAscent * 2;
+    h.fillStyle = this.TITLE_FONT_COLOR, this.IS_SHOW_TITLE_SHADOW && (h.strokeStyle = this.TITLE_FONT_COLOR, h.fillText(s, this.CHART_X + 17, this.CHART_Y - this.CHART_HEIGHT + r + 2)), h.fillText(s, this.CHART_X + 15, this.CHART_Y - this.CHART_HEIGHT + r);
+  }
+  /**
+   * Interpolate path points
+   * @param {} points 
+   * @param {*} interpolateMethod 
+   */
+  applyBezierCurve(t, e) {
+    for (let s = 1; s < e.length; s++) {
+      let i = e[s - 1], h = e[s];
+      const n = i.x + (h.x - i.x) * 0.2, l = i.y - 50, r = i.x + (h.x - i.x) * 0.45, o = h.y + 50;
+      t.bezierCurveTo(n, l, r, o, h.x - (h.x - i.x) * 0.2, h.y);
+    }
+  }
+  /**
+   * Draw half algorithm curve
+   * @param {*} path 
+   * @param {*} shape 
+   */
+  drawHalfCurve(t, e) {
+    for (let s = 1; s < e.length - 2; s++)
+      for (let i = 0; i <= 1; i += 0.1) {
+        let h = this.catmullRom(e[s - 1].x, e[s].x, e[s + 1].x, e[s + 2].x, i), n = this.catmullRom(e[s - 1].y, e[s].y, e[s + 1].y, e[s + 2].y, i);
+        t.lineTo(h, n);
+      }
+  }
+  /**
+   * Interpolate function
+   * @param {*} p0 
+   * @param {*} p1 
+   * @param {*} p2 
+   * @param {*} p3 
+   * @param {*} t 
+   * @returns 
+   */
+  catmullRom(t, e, s, i, h) {
+    return 0.5 * (2 * e + (-t + s) * h + (2 * t - 5 * e + 4 * s - i) * h * h + (-t + 3 * e - 3 * s + i) * h * h * h);
+  }
+  /**
+   * Set value on mouse pointer
+   * @param {*} mx 
+   * @param {*} my 
+   */
+  setValueToMouse(t, e) {
+    if (this.selectedElement) {
+      const s = this.getMouseIndex(t, e), i = (this.CHART_HEIGHT - e) / (this.CHART_HEIGHT / this.LIMIT);
+      this.selectedElement.getValues()[s] = i, this.selectedElement.setSelectedValue(i);
+    }
+  }
+  /**
+   * Get mouse point value
+   * @param {*} mx 
+   * @param {*} my 
+   * @returns 
+   */
+  getMouseValue(t, e) {
+    return (this.CHART_HEIGHT - e) / (this.CHART_HEIGHT / this.LIMIT);
+  }
+  /**
+   * Get index on mouse position
+   * @param {*} cx 
+   * @param {*} cy 
+   */
+  getMouseIndex(t, e) {
+    const s = this.CHART_ELEMENTS.getMaxXIndex(), i = this.CHART_WIDTH / s;
+    for (let h = 0; h < s; h++) {
+      const n = this.CHART_X + h * i, l = this.CHART_Y, r = i, o = this.CHART_HEIGHT;
+      if (new L([{ x: n, y: l }, { x: n, y: l - o }, { x: n + r, y: l - o }, { x: n + r, y: l }]).contains(t, e))
+        return h;
+    }
+    return -1;
+  }
+  /**
+   * Get y coordinate for value
+   * @param {*} value 
+   * @returns 
+   */
+  getCoordinateY(t) {
+    const e = this.CHART_ELEMENTS.getMaximum();
+    return this.LIMIT < e ? this.CHART_Y - t / e * this.CHART_HEIGHT : this.CHART_Y - t / this.LIMIT * this.CHART_HEIGHT;
+  }
+  /**
+   * Dispatch element to callback function of registered object
+   * @param {*} selectedElement 
+   */
+  dispatchToSelectedCallback(t) {
+    for (const e of this.selectedCallback)
+      e(t);
+  }
+  /**
+   * Draw peek point shape on element value
+   * @param {string} peekStyle
+   * @param {{x: number, y: number}} peekPoint
+   * @param {number} thickness
+   * @param {number} radius
+   * @param {string} color
+   */
+  drawPeak(t, e, s, i, h, n = this.ctx) {
+    n.beginPath(), n.globalAlpha = this.LEGEND_BG_ALPHA, n.fillStyle = h, n.lineWidth = s, n.strokeStyle = h, n.beginPath(), t === "CIRCLE" ? n.arc(e.x, e.y, i, 0, Math.PI * 2) : t === "RECTANGLE" && n.rect(e.x - i, e.y - i / 2, i * 2, i * 2), n.fill(), n.globalAlpha = 1, n.lineWidth = 3, n.stroke();
+  }
+  /**
+   * Draw pop up
+   * @param {Object} element
+   * @param {{x: number, y: number}} popPoint
+   */
+  drawPopup(t = this.elementHover, e = this.elementHover.getSelectedPoint(), s = this.ctx) {
+    if (t.getSelectedValue() === -1)
+      return;
+    const i = t.getElementName(), h = t.getSelectedValue().toFixed(this.ROUND_PLACE), n = this.CHART_WIDTH * this.SCALED_WIDTH / (this.CHART_WIDTH * (this.SCALED_WIDTH / 12)), l = this.setFont(i, n, "bold", this.FONT_NAME, s), r = this.setFont(h, n, "bold", this.FONT_NAME, s), o = l.fontBoundingBoxAscent, a = (l.width > r.width ? l.width : r.width) * 2, A = l.fontBoundingBoxAscent * 2 + o;
+    let _ = e.x - a;
+    _ < this.CHART_X && (_ += a);
+    let E = e.y - A;
+    s.beginPath(), this.IS_SHOW_POPUP_BACKGROUND && (s.fillStyle = this.POPUP_BG_COLOR, s.strokeStyle = this.BORDER_COLOR, s.lineWidth = 2, s.roundRect(_, E, a, A, 10), s.fill(), s.stroke()), s.fillStyle = t.getElementColor(), s.globalAlpha = this.LEGEND_FONT_ALPHA, s.fillText(t.getElementName(), _ + o, Math.round(E + o * 1.5)), t.getSelectedValue() > 0 && s.fillText(h, _ + o, Math.round(E + o * 2.5));
+  }
+  /**
+   * To draw legend hover shape
+   * @param {*} element 
+   */
+  drawLegendHover(t, e = this.ctx) {
+    const s = t.getLegendShapes();
+    e.globalAlpha = 0.3, e.fillStyle = this.CHART_BG_COLOR, e.fillRect(s[0].x, s[0].y, s[1].x - s[0].x, s[2].y - s[1].y);
+  }
+  /**
+   * To draw legen
+   * @param {*} elements 
+   * @param {*} ctx 
+   */
+  drawLegend(t = this.CHART_ELEMENTS, e = this.ctx) {
+    let s = "", i = "";
+    t.forEach((T) => {
+      if (T) {
+        if (i = T.getLabel(), !i) return;
+        i.length > s.length && (s = i);
+      }
+    });
+    const h = this.CHART_WIDTH * this.SCALED_WIDTH / (this.CHART_WIDTH * (this.SCALED_WIDTH / 10)), n = t.map((T) => T.getElementName()).reduce((T, R) => R.length > T.length ? R : T, ""), l = this.setFont(n, h, "bold", this.FONT_NAME, e), r = l.actualBoundingBoxAscent, o = r * 2, a = 20, A = l.width + a, _ = o * t.length, E = this.LEGEND_X - A, H = this.LEGEND_Y;
+    this.IS_SHOW_LEGEND_BACKGROUND && (e.globalAlpha = this.LEGEND_BG_ALPHA, e.fillStyle = this.LEGEND_BG_COLOR, e.fillRect(E, H, A, _), e.strokeRect(E, H, A, _), e.lineWidth = 1), t.forEach((T, R) => {
+      if (T) {
+        const C = [
+          { x: E, y: H + o * R },
+          { x: E + A, y: H + o * R },
+          { x: E + A, y: H + o * (R + 1) },
+          { x: E, y: H + o * (R + 1) }
+        ];
+        T.setLegendShapes(C), this.elementHover && this.elementHover.elementName === T.getElementName() && (e.fillStyle = this.CHART_BG_COLOR, e.globalAlpha = 1, e.fillRect(C[0].x + e.lineWidth, C[0].y + e.lineWidth, A - e.lineWidth * 2, o - e.lineWidth * 2)), e.fillStyle = this.INDEX_FONT_COLOR, e.globalAlpha = this.LEGEND_FONT_ALPHA;
+        const u = T.getLabel() || T.elementName;
+        e.fillText(u, E + a / 2, H + _ / t.length * R + o - r / 2);
+      }
+    }), e.restore();
+  }
+  /**
+   * Draw indexes of x axis
+   * @param {Array} xIndex
+   */
+  drawLabelX(t, e = this.ctx) {
+    e.beginPath(), e.globalAlpha = this.INDEX_FONT_ALPHA, e.fillStyle = this.INDEX_FONT_COLOR;
+    let s = this.CHART_ELEMENTS.getMaxXIndex(), i = this.CHART_ELEMENTS.getChartType() === I.CHART.AREA || this.CHART_ELEMENTS.getChartType() === I.CHART.LINE;
+    const h = this.CHART_WIDTH / (i ? s - 1 : s);
+    for (let n = 0; n < s; n++)
+      if (t[n]) {
+        const l = t[n] ? String(t[n]) : "", r = this.setFont(l, this.INDEX_FONT_SIZE, "bold", this.FONT_NAME, e), o = r.width, a = r.actualBoundingBoxAscent, A = this.CHART_X + n * h + (i ? 0 : h / 2) + r.width / 2, _ = this.CHART_Y + 1;
+        e.fillText(t[n], A - o, _ + a + 3);
+      }
+  }
+  /**
+   * Draw Y index
+   * @param {*} yIndex 
+   * @param {*} maxValue 
+   */
+  drawLabelY(t, e, s = this.ctx) {
+    s.beginPath(), s.globalAlpha = this.INDEX_FONT_ALPHA, s.fillStyle = this.INDEX_FONT_COLOR;
+    const i = t.length;
+    for (let h = 0; h < i; h++) {
+      const n = t[h];
+      let l = 0;
+      if (typeof n == "number")
+        l = Number(n);
+      else
+        throw new Error("Y index value must be decimal value.");
+      this.LIMIT < e ? l = this.CHART_Y - l * this.CHART_HEIGHT / e : l = this.CHART_Y - l * this.CHART_HEIGHT / this.LIMIT;
+      const r = this.setFont(n, this.FONT_SIZE, "bold", this.FONT_NAME, s);
+      s.fillText(n, this.CHART_X - r.width - this.INDEX_FONT_SIZE, l);
+    }
+  }
+  /**
+   * Draw grid x 
+   * @param {Array} xIndex
+   * @param {number} style
+   */
+  drawGridX(t, e, s = this.ctx) {
+    s.beginPath(), s.fillStyle = this.GRID_X_COLOR, s.lineWidth = this.GRID_SIZE, s.globalAlpha = this.GRID_ALPHA;
+    let i = this.CHART_ELEMENTS.getMaxXIndex(), h = this.CHART_ELEMENTS.getChartType() === I.CHART.AREA || this.CHART_ELEMENTS.getChartType() === I.CHART.LINE;
+    const n = this.CHART_WIDTH / (h ? i - 1 : i);
+    for (let l = 0; l < i; l++) {
+      const r = this.CHART_X + l * n;
+      t[l] && this.drawGrid("X", e, r, this.CHART_Y - this.CHART_BORDER_SIZE, r, this.CHART_Y + 1 - this.CHART_HEIGHT + this.CHART_BORDER_SIZE, s);
+    }
+  }
+  /**
+   * Draw grid y
+   * @param {Array} yIndex
+   * @param {number} style
+   * @param {number} maxValue
+   */
+  drawGridY(t, e, s, i = this.ctx) {
+    const h = t.length;
+    i.beginPath(), i.globalAlpha = this.CHART_ALPHA, i.fillStyle = this.GRID_Y_COLOR;
+    for (let n = 0; n < h; n++) {
+      const l = t[n];
+      let r = 0;
+      if (typeof l == "number")
+        r = Number(l);
+      else
+        throw new Error("Y index value must be decimal value.");
+      this.LIMIT < s ? r = this.CHART_Y - r * this.CHART_HEIGHT / s : r = this.CHART_Y - r * this.CHART_HEIGHT / this.LIMIT;
+      const o = this.CHART_X + this.CHART_WIDTH - this.CHART_BORDER_SIZE;
+      r !== 0 && r > this.CHART_Y - this.CHART_HEIGHT && this.drawGrid("Y", e, this.CHART_X, parseInt(r), o, parseInt(r), i);
+    }
+  }
+  /**
+   * Draw grid
+   * @param {string} xy - 'X' or 'Y' representing the visibility of the grid
+   * @param {string} gridStyle - 'LINE' or 'DOT' for the style of the grid
+   * @param {number} x1 - x-coordinate of the start point
+   * @param {number} y1 - y-coordinate of the start point
+   * @param {number} x2 - x-coordinate of the end point
+   * @param {number} y2 - y-coordinate of the end point
+   */
+  drawGrid(t, e, s, i, h, n, l = this.ctx) {
+    if (l.beginPath(), l.lineWidth = this.GRID_SIZE, l.globalAlpha = this.GRID_ALPHA, e === "LINE")
+      l.moveTo(s, i), l.lineTo(h, n);
+    else if (e === "DOT") {
+      if (t === "X")
+        for (let r = 0; i - r * 5 > n; r++)
+          l.moveTo(s, i - r * 5), l.lineTo(s, i - r * 5 - 3);
+      else if (t === "Y")
+        for (let r = 0; s + r * 5 < h; r++)
+          l.moveTo(s + r * 5, i), l.lineTo(s + r * 5 + 3, i);
+    }
+    l.stroke();
+  }
+  /**
+   * Draw dash gridY
+   * @param {*} chartY 
+   * @param {*} chartHeight 
+   * @param {*} maximum 
+   */
+  drawDashGridY(t, e, s, i = this.ctx) {
+    const n = e / 10, l = s / 10;
+    i.strokeStyle = this.BORDER_COLOR, i.lineWidth = 1, i.setLineDash([5, 5]);
+    for (let r = 0; r <= 10; r++) {
+      const o = t - r * n;
+      i.beginPath(), i.moveTo(50, o), i.lineTo(this.width - 50, o), i.stroke(), i.fillStyle = this.GRID_Y_COLOR, i.fillText((r * l).toFixed(2), 10, o + 5);
+    }
+    i.setLineDash([]);
+  }
+  /**
+   * Draw water mark with 9ins
+   * @param {CanvasRenderingContext2D} ctx - the rendering context to draw on
+   */
+  drawRight(t) {
+    t.beginPath();
+    const e = "© 2025 ChaosToCosmos", i = this.setFont(e, 9, "bold", this.FONT_NAME, t).width, h = 9;
+    t.globalAlpha = 0.3, t.fillText(e, this.CANVAS_WIDTH - i - 5, this.CANVAS_HEIGHT - h);
+  }
+  /**
+   * Resize and drawing current context object
+   * @param {number} width - new width
+   * @param {number} height - new height
+   */
+  resizeImage(t, e, s = this.ctx) {
+    t < 100 || e < 100 || (this.canvas.width = t, this.canvas.height = e, s = this.canvas.getContext("2d"), this.initChart(t, e), this.drawChart());
+  }
+  /**
+   * Get a buffered image painted chart
+   * @param {number} width - image width
+   * @param {number} height - image height
+   * @returns {HTMLCanvasElement} - the canvas element representing the chart
+   */
+  getBufferedImage(t, e) {
+    const s = document.createElement("canvas");
+    return s.width = t, s.height = e, this.resizeImage(t, e), s;
+  }
+  /**
+   * Set element value on index and redraw chart
+   * @param {*} elementName 
+   * @param {*} index 
+   * @param {*} value 
+   */
+  setElementValue(t, e, s) {
+    this.CHART_ELEMENTS.getChartElementMap().get(t).getValues()[e] = s, this.drawChart();
+  }
+  /**
+   * Get element values
+   * @param {*} elementName 
+   * @param {*} values
+   * @returns 
+   */
+  setElementValues(t, e) {
+    this.CHART_ELEMENTS.getChartElementMap().get(t).setValues(e), this.drawChart();
+  }
+  /**
+   * Scale In, Out chart
+   * @param {*} scale 
+   * @returns 
+   */
+  scaleChart(t) {
+    const e = super.getImageWidth() * t, s = super.getImageHeight() * t;
+    e <= super.getIndentLeft() + super.getIndentRight() + 100 || e > window.innerWidth || this.resizeImage(e, s);
+  }
+  /**
+   * Add value callback 
+   * @param {*} callback 
+   */
+  addSelectedCallback(t) {
+    this.selectedCallback.push(t);
+  }
+  /**
+   * Set selected element
+   * @param {} elementName 
+   */
+  setSelectedElement(t) {
+    this.elementHover = this.CHART_ELEMENTS.getChartElementMap().get(t), this.drawChart();
+  }
+  /**
+   * Check x, y is exists in Chart area
+   * @param {} x 
+   * @param {*} y 
+   * @returns 
+   */
+  existInChartArea(t, e) {
+    return new L([
+      { x: this.CHART_X, y: this.CHART_Y },
+      { x: this.CHART_X, y: this.CHART_Y + this.CHART_HEIGHT },
+      { x: this.CHART_X + this.CHART_WIDTH, y: this.CHART_Y + this.CHART_HEIGHT },
+      { x: this.CHART_X + this.CHART_WIDTH, y: this.CHART_Y }
+    ]).contains(t, e);
+  }
+  /**
+   * Translate canvas coordinate
+   * @param {*} event 
+   * @param {*} canvas 
+   * @returns 
+   */
+  translateCanvasXY(t, e, s = this.canvas) {
+    const i = s.getBoundingClientRect(), h = (t - i.left) / i.width, n = (e - i.top) / i.height, l = h * this.canvas.width, r = n * this.canvas.height;
+    return { x: l, y: r };
+  }
+  /**
+   * Get polygon object by shapes point list
+   * @param {Array<{x: number, y: number}>} shapes
+   * @param {boolean} isReverse
+   * @return {Array<number>} 
+   */
+  getPolygon(t, e) {
+    if (e && t.reverse(), t) {
+      const s = t.map((h) => ({ x: h.x, y: h.y }));
+      return new L(s);
+    }
+    return null;
+  }
+  /**
+   * Get polygon been scaled
+   * @param {Array<{x: number, y: number}>} shapes
+   * @param {number} scale
+   * @return {Array<number>} 
+   */
+  getScalePolygon(t, e) {
+    const s = this.getPolygon(t, !1), i = s.bounds.x + s.bounds.width / 2, h = s.bounds.y + s.bounds.height / 2;
+    return t.forEach((n, l) => {
+      const r = Math.round(n.x > i ? n.x + e : n.x - e), o = Math.round(n.y > h ? n.y + e : n.y - e);
+      t[l] = { x: r, y: o };
+    }), this.getPolygon(t, !1);
+  }
+  /**
+   * Adjust color lightness
+   * @param {*} color 
+   * @param {*} delta 
+   * @returns 
+   */
+  adjustLightness(t, e) {
+    (t.startsWith("#") || t.startsWith("rgb") || t.startsWith("hsl")) && (t = this.extractRGB(t));
+    const s = this.toHSLColorObject(t);
+    return s.l += e, "hsl(" + s.h + ", " + s.s + "%, " + s.l + "%)";
+  }
+  /**
+   * Contrast color
+   * @param {*} color 
+   * @param {*} contrast 
+   * @returns 
+   */
+  adjustContrast(t, e) {
+    (t.startsWith("#") || t.startsWith("rgb") || t.startsWith("hsl")) && (t = this.extractRGB(t));
+    const s = this.toHSLColorObject(t), i = s.l < 50 ? 80 : 20;
+    return s.l = i, this.toHSLColorObject(s);
+  }
+  /**
+   * Set color value with density
+   * @param {*} color 
+   * @param {*} density 
+   * @param {*} ctx
+   */
+  colorWithDensity(t, e, s = this.ctx) {
+    let i = Math.min(255, Math.max(0, t.r + e)), h = Math.min(255, Math.max(0, t.g + e)), n = Math.min(255, Math.max(0, t.b + e));
+    s.fillStyle = `rgb(${i}, ${h}, ${n})`;
+  }
+  /**
+   * Extract r, g, b color from color string
+   * @param {*} color 
+   * @returns 
+   */
+  extractRGB(t) {
+    let e, s, i, h = t.match(/^#([a-fA-F0-9]{3,6})$/);
+    if (h) {
+      let r = h[1];
+      return r.length === 3 && (r = r.split("").map((o) => o + o).join("")), e = parseInt(r.substring(0, 2), 16), s = parseInt(r.substring(2, 4), 16), i = parseInt(r.substring(4, 6), 16), { r: e, g: s, b: i };
+    }
+    let n = t.match(/^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/);
+    if (n)
+      return {
+        r: parseInt(n[1]),
+        g: parseInt(n[2]),
+        b: parseInt(n[3])
+      };
+    let l = t.match(/^hsl\s*\(\s*(\d{1,3})\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)$/);
+    if (l) {
+      let r = parseInt(l[10]) / 360, o = parseFloat(l[2]) / 100, a = parseFloat(l[3]) / 100, A = (T, R, C) => (C < 0 && (C += 1), C > 1 && (C -= 1), C < 1 / 6 ? T + (R - T) * 6 * C : C < 1 / 2 ? R : C < 2 / 3 ? T + (R - T) * (2 / 3 - C) * 6 : T), _ = a < 0.5 ? a * (1 + o) : a + o - a * o, E = 2 * a - _;
+      return {
+        r: Math.round(A(E, _, r + 1 / 3) * 255),
+        g: Math.round(A(E, _, r) * 255),
+        b: Math.round(A(E, _, r - 1 / 3) * 255)
+      };
+    }
+    return null;
+  }
+  /**
+   * Convert r, g, b color to Hex color
+   * @param {*} color
+   * @returns 
+   */
+  toHexColorString(t) {
+    return "#" + (16777216 | t.r << 16 | t.g << 8 | t.b).toString(16).slice(1).toUpperCase();
+  }
+  /**
+   * Convert to HSL color
+   * @param {*} color
+   * @returns 
+   */
+  toHSLColorObject(t) {
+    const e = t.r / 255, s = t.g / 255, i = t.b / 255;
+    let h = Math.max(e, s, i), n = Math.min(e, s, i), l, r, o = (h + n) / 2;
+    if (h === n)
+      l = r = 0;
+    else {
+      let A = h - n;
+      switch (r = o > 0.5 ? A / (2 - h - n) : A / (h + n), h) {
+        case e:
+          l = (s - i) / A + (s < i ? 6 : 0);
+          break;
+        case s:
+          l = (i - e) / A + 2;
+          break;
+        case i:
+          l = (e - s) / A + 4;
+          break;
+      }
+      l *= 60;
+    }
+    return { h: l, s: r, l: o };
+  }
+  /**
+   * Convert to HSL color string
+   * @param {*} color 
+   * @returns 
+   */
+  toHSLColorString(t) {
+    const e = this.toHSLColorObject(t);
+    return "hsl(" + e.h + ", " + e.s + "% , " + e.l + "%)";
+  }
+  /**
+   * Convert to RGB color
+   * @param {*} color
+   * @returns 
+   */
+  toRGBColorString(t) {
+    return `rgb(${t.r}, ${t.g}, ${t.b})`;
+  }
+  /**
+   * To set font
+   * @param {string} text
+   * @param {number} fontSize
+   * @return {TextMetrics}
+   */
+  setFont(t, e, s, i, h = this.ctx) {
+    return h.font = `${s} ${e}px ${i}`, h.measureText(t);
+  }
+  /**
+   * To convert double value to integer
+   * @param {number} doubleValue
+   * @return {number}
+   */
+  intValue(t) {
+    return Math.round(t);
+  }
+  /**
+   * To get whether color is dark
+   * @param {string} color
+   * @return {boolean}
+   */
+  isDarkColor(t) {
+    const e = t;
+    return e.r < 90 && e.g < 90 && e.b < 90;
+  }
+}
+class P {
+  /**
+   * Save image to file
+   * @param {Object} imageData - Image data
+   * @param {string} saveFile - File path
+   * @param {string} codec - File format
+   */
+  // static async saveImage(imageData, saveFile, codec) {
+  //     const ext = path.extname(saveFile).slice(1).toLowerCase();
+  //     if (!Object.values(ChartUtility.CODEC).includes(ext)) {
+  //         throw new Error('Unsupported encoding format');
+  //     }
+  //     const canvas = createCanvas(imageData.width, imageData.height);
+  //     const ctx = canvas.getContext('2d');
+  //     ctx.putImageData(imageData, 0, 0);
+  //     const out = fs.createWriteStream(saveFile);
+  //     const stream = canvas.createJPEGStream(); // Use codec-specific streams
+  //     stream.pipe(out);
+  //     out.on('finish', () => console.log('Saved image to file.'));
+  // }
+  /**
+   * Create Chart object with JSON data
+   * @param {string} json - JSON string
+   * @return {Object} Chart object
+   */
+  static createChartWithJson(t) {
+    const e = JSON.parse(t);
+    return this.createChartWithMap(e);
+  }
+  /**
+   * Round values to specified decimal places
+   * @param {Array<number>} values - List of numbers
+   * @param {number} places - Decimal places
+   * @return {Array<number>} Rounded values
+   */
+  static roundValues(t, e) {
+    const s = Math.pow(10, e);
+    return t.map((i) => Math.round(i * s) / s);
+  }
+  /**
+   * Helper to convert a color object to CSS string
+   * @param {*} color
+   * @returns
+   */
+  static colorToString(t) {
+    return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.a})`;
+  }
+  /**
+   * Helper functions
+   *
+   * @param {*} degrees
+   * @returns
+   */
+  static toRadians(t) {
+    return t * Math.PI / 180;
+  }
+  /**
+   * Apply round avoid
+   * @param {*} value
+   * @param {*} decimalPoint
+   * @returns
+   */
+  static roundAvoid(t, e) {
+    const s = Math.pow(10, e);
+    return Math.round(t * s) / s;
+  }
+  /**
+   * Calulate center x, y of polygon
+   * @param {} vertices
+   * @returns
+   */
+  static getPolygonCenterXY(t) {
+    let e = 0, s = 0, i = 0;
+    const h = t.length;
+    for (let r = 0; r < h; r++) {
+      let o = (r + 1) % h, a = t[r].x * t[o].y - t[o].x * t[r].y;
+      i += a, e += (t[r].x + t[o].x) * a, s += (t[r].y + t[o].y) * a;
+    }
+    i *= 0.5;
+    let n = e / (6 * i), l = s / (6 * i);
+    return { x: n, y: l };
+  }
+  /**
+   * Split array to fit of chunk size
+   * @param {*} arr
+   * @param {*} chunkSize
+   * @returns
+   */
+  static splitIntoChunks(t, e = 4) {
+    return t.reduce((s, i, h) => (h % e === 0 && s.push(t.slice(h, h + e)), s), []);
+  }
+}
+/**
+ * Supported codecs
+ */
+b(P, "CODEC", {
+  JPEG: "jpeg",
+  PNG: "png",
+  BMP: "bmp",
+  TIFF: "tiff"
+});
+class $ extends O {
+  /**
+   * constructor
+   * @param {*} canvas 
+   * @param {*} elements 
+   * @param {*} title 
+   */
+  constructor(t, e, s = "", i = g.LINEAR) {
+    super(t, e, s), this.CHART_ELEMENTS.setChartType(I.CHART.AREA), this.INTERPOLATE_TYPE = i;
+  }
+  /**
+   * Draw the area Chart on the canvas
+   */
+  drawChart(t = this.ctx) {
+    if (t.globalAlpha = this.CHART_ALPHA, t.drawImage(this.offscreenCanvas, 0, 0), this.CHART_ELEMENTS.getChartElementMap().size < 1)
+      return;
+    const e = this.CHART_ELEMENTS.getChartElementMap();
+    this.CHART_ELEMENTS.getMaximum();
+    const s = this.CHART_ELEMENTS.getMaxXIndex() - 1, i = this.CHART_WIDTH / s;
+    t.rect(this.CHART_X, this.CHART_Y - this.CHART_HEIGHT, this.CHART_WIDTH, this.CHART_HEIGHT), t.clip(), t.beginPath(), t.lineWidth = this.BORDER_SIZE, t.lineCap = "round", t.lineJoin = "round", this.CHART_ELEMENTS.getElementOrder().forEach((h, n) => {
+      const l = e.get(h), r = l.getValues().map((_) => P.roundAvoid(_, this.ROUND_PLACE)), o = [], a = new Path2D();
+      a.moveTo(this.CHART_X, this.CHART_Y), o.push({ x: this.CHART_X, y: this.CHART_Y }), r.forEach((_, E) => {
+        if (_ < 0)
+          return;
+        const H = E * i + this.CHART_X, T = this.getCoordinateY(_);
+        o.push({ x: H, y: T }), this.INTERPOLATE_TYPE === g.LINEAR && a.lineTo(H, T);
+      }), o.push({ x: this.CHART_X + this.CHART_WIDTH, y: this.CHART_Y - this.CHART_BORDER_SIZE }), this.INTERPOLATE_TYPE !== g.LINEAR && this.applyBezierCurve(a, o), a.lineTo(this.CHART_X + this.CHART_WIDTH, this.CHART_Y - this.CHART_BORDER_SIZE), a.closePath(), this.IS_SELECTION_ENABLE && this.elementHover && this.elementHover.elementName === l.getElementName() ? (this.SEL_BORDER === I.SELECTION_BORDER.LINE ? t.lineWidth = this.BORDER_SIZE : this.SEL_BORDER === this.SELECTION_BORDER.DOT && t.setLineDash([this.BORDER_SIZE * 2]), t.globalAlpha = 1, t.strokeStyle = l.getElementColor()) : (t.globalAlpha = this.elementHover ? 0.1 : this.CHART_ALPHA, t.strokeStyle = l.getElementColor());
+      let A = 0;
+      o.push({ x: A, y: this.CHART_Y + this.CHART_HEIGHT }), o.push({ x: this.CHART_X, y: this.CHART_Y + this.CHART_HEIGHT }), l.setShapes(o), a.lineTo(A, this.CHART_Y), a.closePath(), t.fillStyle = l.getElementColor(), t.fill(a), this.IS_SHOW_BORDER && (t.lineWidth = this.BORDER_SIZE, t.strokeStyle = this.CHART_BORDER_COLOR, t.stroke(a)), this.INTERPOLATE_TYPE === g.LINEAR && this.IS_SHOW_PEAK && this.IS_SELECTION_ENABLE && this.elementHover && l.getElementName() === this.elementHover.getElementName() && o.forEach((_, E) => {
+        this.INTERPOLATE_TYPE && E % this.INTERPOLATE_SCALE !== 0 || super.drawPeak(I.PEEK_STYLE.CIRCLE, _, 2, 4, l.getElementColor(), t);
+      });
+    }), t.save(), this.IS_SHOW_POPUP && this.selectedElement && this.drawPopup(this.selectedElement, this.selectedElement.getSelectedPoint(), t), this.IS_SHOW_LEGEND && this.elementHover && this.drawLegendHover(this.elementHover, t), t.restore();
+  }
+  /**
+   * Checks if a specific point is on chart element shapes
+   * @param {*} x 
+   * @param {*} y 
+   * @returns 
+   */
+  isPointOnShapes(t, e, s = this.ctx) {
+    const i = Array.from(this.CHART_ELEMENTS.getChartElementMap().values());
+    for (const h of i) {
+      const n = new Path2D();
+      if (h.getShapes().forEach((r) => n.lineTo(r.x, r.y)), n.closePath(), this.getPolygon(h.getLegendShapes(), !1).contains(t, e))
+        return h.isInLegend = !0, h;
+      if (s.isPointInPath(n, t, e)) {
+        const r = this.CHART_WIDTH / this.CHART_ELEMENTS.getXIndex().length, o = parseInt((t - this.CHART_X) / r);
+        if (o < h.getValues().length)
+          return h.setSelectedValue(h.getValues()[o]), h.setSelectedPoint({ x: t, y: e }), h.setSelectedValueIndex(o), h.isInLegend = !1, h;
+      } else {
+        if (this.selectedElement != null)
+          return this.selectedElement;
+        h.setSelectedValue(-1), h.setSelectedValueIndex(-1), h.setSelectedPoint(null), h.isInLegend = !1;
+      }
+    }
+    return null;
+  }
+}
+class j extends O {
+  /**
+   * constructor
+   * @param {} canvas 
+   * @param {*} elements 
+   * @param {*} title 
+   */
+  constructor(t, e, s = "") {
+    super(t, e, s), this.CHART_ELEMENTS.setChartType(I.CHART.BAR);
+  }
+  /**
+   * Draw the bar Chart on the canvas
+   */
+  drawChart(t = this.ctx) {
+    if (t.globalAlpha = this.CHART_ALPHA, t.drawImage(this.offscreenCanvas, 0, 0), this.CHART_ELEMENTS.getChartElementMap().size < 1)
+      return;
+    const e = this.CHART_ELEMENTS.getXIndex(), s = this.CHART_ELEMENTS.getMinXIndex();
+    for (; e.length < s; )
+      e.push(null);
+    const i = this.CHART_ELEMENTS.getChartElementMap(), h = this.CHART_ELEMENTS.getMaximum(), n = this.CHART_WIDTH / this.CHART_ELEMENTS.getMaxXIndex(), l = n / (this.CHART_ELEMENTS.getElementCount() + 2);
+    t.rect(this.CHART_X, this.CHART_Y - this.CHART_HEIGHT, this.CHART_WIDTH, this.CHART_HEIGHT), t.clip(), t.beginPath(), t.lineWidth = this.BORDER_SIZE, this.CHART_ELEMENTS.getElementOrder().forEach((r, o) => {
+      const a = i.get(r), A = a.getValues().map((E) => Math.round(E)), _ = [];
+      A.forEach((E, H) => {
+        const T = this.CHART_X + H * n + l + o * l, R = this.LIMIT < h ? E * this.CHART_HEIGHT / h : E * this.CHART_HEIGHT / this.LIMIT, C = this.CHART_Y - R;
+        this.IS_SELECTION_ENABLE && this.elementHover ? this.elementHover.getElementName() === a.getElementName() ? t.globalAlpha = this.CHART_ALPHA : t.globalAlpha = 0.2 : t.globalAlpha = this.CHART_ALPHA, t.fillStyle = a.getElementColor(), t.fillRect(T, C, l, R), this.IS_SHOW_BORDER && (t.lineWidth = this.BORDER_SIZE, t.fillStyle = this.CHART_BORDER_COLOR, t.strokeRect(T, C, l, R)), _.push([{ x: T, y: C }, { x: T + l, y: C }, { x: T + l, y: C + R }, { x: T, y: C + R }]);
+      }), a.setShapes(_);
+    }), t.save(), this.IS_SHOW_POPUP && this.elementHover && this.drawPopup(this.elementHover, this.elementHover.getSelectedPoint(), t), this.IS_SHOW_LEGEND && this.elementHover && this.drawLegendHover(this.elementHover, t), t.restore();
+  }
+  /**
+   * Processs chart shape related with x, y
+   * @param {} x 
+   * @param {*} y 
+   * @returns 
+   */
+  isPointOnShapes(t, e) {
+    const s = Array.from(this.CHART_ELEMENTS.getChartElementMap().values());
+    for (const i of s) {
+      const h = i.getShapes();
+      for (let n = 0; n < h.length; n++) {
+        let l = new L(h[n]);
+        if (this.getPolygon(i.getLegendShapes(), !1).contains(t, e))
+          return i.isInLegend = !0, i;
+        if (l.contains(t, e))
+          return i.setSelectedValue(i.getValues()[n]), i.setSelectedValueIndex(n), i.setSelectedPoint({ x: t, y: e }), i.isInLegend = !1, i;
+        i.setSelectedValue(-1), i.setSelectedValueIndex(-1), i.setSelectedPoint(null), i.isInLegend = !1;
+      }
+    }
+    return null;
+  }
+}
+class z extends O {
+  /**
+   * constructor
+   * @param {*} canvas 
+   * @param {*} elements 
+   * @param {*} title 
+   */
+  constructor(t, e, s = "") {
+    super(t, e, s), this.CHART_ELEMENTS.setChartType(I.CHART.BAR_RATIO);
+  }
+  /**
+   * Draw bar ratio Chart
+   * @param {context} ctx 
+   */
+  drawChart(t = this.ctx) {
+    if (t.globalAlpha = this.CHART_ALPHA, t.drawImage(this.offscreenCanvas, 0, 0), this.CHART_ELEMENTS.getChartElementMap().size < 1)
+      return;
+    const e = this.CHART_ELEMENTS.getMaximum();
+    this.CHART_ELEMENTS.getMinXIndex();
+    const s = [...this.CHART_ELEMENTS.getXIndex()], i = [...this.CHART_ELEMENTS.getElementOrder()].reverse(), h = this.CHART_WIDTH / this.CHART_ELEMENTS.getMaxXIndex(), n = h / (this.CHART_ELEMENTS.getElementCount() + 2);
+    this.CHART_WIDTH / s.length;
+    const l = h - n * 2;
+    t.lineWidth = this.BORDER_SIZE, t.beginPath(), t.rect(this.CHART_X, this.CHART_Y - this.CHART_HEIGHT, this.CHART_WIDTH, this.CHART_HEIGHT), t.clip();
+    for (let r = 0; r < this.CHART_ELEMENTS.getXIndex().length; r++) {
+      let o = r * h + n + this.CHART_X, a = this.CHART_Y;
+      i.forEach((A, _) => {
+        const E = this.CHART_ELEMENTS.getChartElementMap().get(A);
+        E.getValues().reduce((C, u) => C + u, 0);
+        const H = (E.getValues()[r] * this.VALUE_DIVISION_RATIO).toFixed(this.ROUND_PLACE);
+        if (H < 0)
+          return;
+        const T = e < this.LIMIT ? H * this.CHART_HEIGHT / this.LIMIT : H * this.CHART_HEIGHT / e;
+        if (a -= T, t.beginPath(), this.IS_SHOW_SHADOW) {
+          const C = Math.cos(-this.SHADOW_ANGLE * Math.PI / 180) * this.SHADOW_DIST + o, u = Math.sin(-this.SHADOW_ANGLE * Math.PI / 180) * this.SHADOW_DIST + a;
+          t.globalAlpha = this.SHADOW_ALPHA, t.fillStyle = this.SHADOW_COLOR, t.fillRect(C, u, l, T - this.SHADOW_DIST);
+        }
+        this.IS_SELECTION_ENABLE && this.elementHover ? (t.strokeStyle = E.getElementColor(), this.elementHover.getElementName() === E.getElementName() ? t.globalAlpha = this.CHART_ALPHA : t.globalAlpha = 0.2) : t.globalAlpha = this.CHART_ALPHA, t.fillStyle = E.getElementColor(), t.fillRect(o, a, l, T), t.lineWidth = this.CHART_BORDER_SIZE, t.strokeStyle = this.CHART_BORDER_COLOR, t.strokeRect(o, a, l, T), t.stroke(), this.IS_SHOW_BORDER && t.strokeRect(o, a, l, T);
+        const R = E.getShapes();
+        for (R.push([{ x: o, y: a }, { x: o, y: a + T }, { x: o + l, y: a + T }, { x: o + l, y: a }]); R.length > E.getValues().length; )
+          R.shift();
+      });
+    }
+    t.save(), this.IS_SHOW_POPUP && this.elementHover && this.drawPopup(this.elementHover, this.elementHover.getSelectedPoint(), t), this.IS_SHOW_LEGEND && this.elementHover && this.drawLegendHover(this.elementHover, t), t.restore();
+  }
+  /**
+   * Whether x, y is in Polygon
+   * @param {*} x 
+   * @param {*} y 
+   * @returns 
+   */
+  isPointOnShapes(t, e) {
+    const s = Array.from(this.CHART_ELEMENTS.getChartElementMap().values());
+    for (let i = 0; i < s.length; i++) {
+      let h = s[i];
+      const n = h.getShapes();
+      for (let l = 0; l < n.length; l++) {
+        let r = new L(n[l]);
+        if (super.getPolygon(h.getLegendShapes(), !1).contains(t, e))
+          return h.isInLegend = !0, h;
+        if (r.contains(t, e))
+          return h.setSelectedValue(h.getValues()[l]), h.setSelectedValueIndex(l), h.setSelectedPoint({ x: t, y: e }), h.isInLegend = !1, h;
+        h.setSelectedValue(-1), h.setSelectedValueIndex(-1), h.setSelectedPoint(null), h.isInLegend = !1;
+      }
+    }
+    return null;
+  }
+}
+class K extends O {
+  /**
+   * constructor
+   * @param {*} canvas 
+   * @param {*} elements 
+   * @param {*} title 
+   * @param {*} isOval 
+   */
+  constructor(t = null, e = null, s = "", i = !1) {
+    super(t, e, s), this.CHART_ELEMENTS.setChartType(I.CHART.CIRCLE), this.isShowPercent = !1, this.isShowValue = !0, this.isOval = i, super.setShowChartXY(!1), super.setShowGridX(!1), super.setShowGridY(!1), super.setShowIndexX(!1), super.setShowIndexY(!1);
+  }
+  /**
+   * Draw circle chart
+   * @param {*} ctx 
+   * @returns 
+   */
+  drawChart(t = this.ctx) {
+    if (t.globalAlpha = this.CHART_ALPHA, t.drawImage(this.offscreenCanvas, 0, 0), this.CHART_ELEMENTS.getChartElementMap().size < 1)
+      return;
+    const e = this.CHART_ELEMENTS.getChartElementMap();
+    this.CHART_ELEMENTS.getXIndex(), this.CHART_ELEMENTS.getMinXIndex();
+    const s = this.CHART_WIDTH - (this.INDENT_LEFT + this.INDENT_RIGHT), i = this.CHART_HEIGHT - (this.INDENT_TOP + this.INDENT_BOTTOM), h = this.CHART_X + this.INDENT_LEFT, n = this.CHART_Y - this.CHART_HEIGHT + this.INDENT_BOTTOM, r = e.values().map((a) => a.getValues()[0]).reduce((a, A) => a + A, 0);
+    let o = 90;
+    t.beginPath(), t.rect(this.CHART_X, this.CHART_Y - this.CHART_HEIGHT, this.CHART_WIDTH, this.CHART_HEIGHT), t.clip(), t.lineWidth = this.BORDER_SIZE, this.CHART_ELEMENTS.getElementOrder().forEach((a, A) => {
+      const _ = e.get(a), E = _.getValues()[0];
+      if (E < 0)
+        return;
+      const H = E * 360 / r * -1;
+      t.beginPath(), t.moveTo(h + s / 2, n + i / 2), t.fillStyle = _.getElementColor();
+      const T = this.toRadians(o), R = this.toRadians(o + H), C = h + s / 2, u = n + i / 2, S = s / 2, N = i / 2, m = i > s ? S : N, B = H / 10, p = [];
+      this.IS_SELECTION_ENABLE && this.elementHover ? this.elementHover.getElementName() === _.getElementName() ? (t.setLineDash(this.SEL_BORDER == "DOT" ? [this.BORDER_SIZE * 2] : []), t.globalAlpha = this.CHART_ALPHA) : (t.setLineDash([]), t.strokeStyle = _.getElementColor(), t.globalAlpha = this.CHART_ALPHA - 0.6) : t.globalAlpha = this.CHART_ALPHA;
+      let M, y;
+      for (let D = 0; D < 10; D++) {
+        const G = (o + B * D) / 180 * Math.PI * -1;
+        M = C + Math.cos(-G) * (this.isOval ? S : m), y = u + Math.sin(-G) * (this.isOval ? N : m), p.push({ x: M, y });
+      }
+      this.isOval ? t.ellipse(C, u, S, N, 0, T, R, !0) : t.arc(C, u, m, T, R, !0), p.push({ x: C, y: u }), _.setShapes(p), t.fill(), t.lineTo(C, u), t.strokeStyle = this.CHART_BORDER_COLOR, t.lineWidth = this.CHART_BORDER_SIZE + 1, t.globalAlpha = this.CHART_BORDER_ALPHA - 0.2, t.stroke(), t.beginPath(), o += H;
+    }), t.save(), this.IS_SHOW_POPUP && this.elementHover && this.drawPopup(this.elementHover, this.elementHover.getSelectedPoint(), t), this.IS_SHOW_LEGEND && this.elementHover && this.drawLegendHover(this.elementHover, t), t.restore();
+  }
+  /**
+   * Whether x, y is in shape
+   * @param {*} x 
+   * @param {*} y 
+   * @returns 
+   */
+  isPointOnShapes(t, e) {
+    const s = Array.from(this.CHART_ELEMENTS.getChartElementMap().values()).reverse();
+    for (const i of s) {
+      const h = new Path2D();
+      if (i.getShapes().forEach((l) => h.lineTo(l.x, l.y)), h.closePath(), this.getPolygon(i.getLegendShapes(), !1).contains(t, e))
+        return i.isInLegend = !0, i;
+      if (this.ctx.isPointInPath(h, t, e)) {
+        const l = P.getPolygonCenterXY(i.getShapes());
+        return i.setSelectedValue(i.getValues()[0]), i.setSelectedPoint(l), i.setSelectedValueIndex(0), i.isInLegend = !1, i;
+      } else
+        i.setSelectedValue(-1), i.setSelectedPoint(null), i.setSelectedValueIndex(-1), i.isInLegend = !1;
+    }
+    return null;
+  }
+  /**
+   * To change value to radian
+   * @param {*} degrees 
+   * @returns 
+   */
+  toRadians(t) {
+    return t * Math.PI / 180;
+  }
+  /**
+   * Whether rectangle is in arc
+   * @param {*} arc 
+   * @param {*} rect 
+   * @returns 
+   */
+  isInArc(t, e) {
+    return t.contains(e);
+  }
+  /**
+   * Set whether percentage string be shown
+   * @param {*} is 
+   */
+  setShowPercent(t) {
+    this.isShowPercent = t;
+  }
+  /**
+   * Set whether value string be shown
+   * @param {*} is 
+   */
+  setShowValue(t) {
+    this.isShowValue = t;
+  }
+}
+class Q extends O {
+  /**
+   * constructor
+   * @param {*} canvas 
+   * @param {*} elements 
+   * @param {*} title 
+   */
+  constructor(t = null, e, s = "", i = g.LINEAR) {
+    super(t, e, s), this.CHART_ELEMENTS.setChartType(I.CHART.LINE), this.LINE_SIZE = 2, this.INTERPOLATE_TYPE = i;
+  }
+  /**
+   * Draw line Chart on an HTML5 canvas
+   * @param {CanvasRenderingContext2D} ctx - Canvas 2D context
+   */
+  drawChart(t = this.ctx) {
+    if (t.globalAlpha = this.CHART_ALPHA, t.drawImage(this.offscreenCanvas, 0, 0), this.CHART_ELEMENTS.getChartElementMap().size < 1)
+      return;
+    const e = this.CHART_ELEMENTS.getXIndex(), s = this.CHART_ELEMENTS.getMinXIndex();
+    if (s > e.length)
+      for (let l = 0; l < s - e.length; l++)
+        e.push(null);
+    let i = this.CHART_ELEMENTS.getMaxXIndex() - 1;
+    Object.values(this.CHART_ELEMENTS.getChartElementMap());
+    const h = this.CHART_ELEMENTS.getMaximum(), n = this.CHART_WIDTH / i;
+    t.beginPath(), t.rect(this.CHART_X, this.CHART_Y - this.CHART_HEIGHT, this.CHART_WIDTH, this.CHART_HEIGHT), t.clip(), this.CHART_ELEMENTS.getElementOrder().forEach((l) => {
+      const r = this.CHART_ELEMENTS.getChartElement(l), o = r.getValues().map((E) => Math.round(E, this.ROUND_PLACE));
+      t.lineWidth = this.IS_SELECTION_ENABLE && this.elementHover === r ? this.LINE_SIZE * 1.3 : this.LINE_SIZE, t.strokeStyle = r.getElementColor(), this.IS_SELECTION_ENABLE && this.elementHover ? (t.strokeStyle = r.getElementColor(), this.elementHover.getElementName() === r.getElementName() ? t.globalAlpha = 1 : t.globalAlpha = 0.3) : t.globalAlpha = this.CHART_ALPHA, t.beginPath();
+      const a = [], A = [];
+      a.push({ x: this.CHART_X, y: this.CHART_Y });
+      for (let E = 0; E < o.length; E++) {
+        const H = E * n + this.CHART_X, T = h > this.LIMIT ? this.CHART_Y - o[E] * this.CHART_HEIGHT / h : this.CHART_Y - o[E] * this.CHART_HEIGHT / this.LIMIT;
+        a.push({ x: H, y: T }), A.push({ x: H + this.LINE_SIZE * 4, y: T - this.LINE_SIZE * 2 });
+      }
+      a.push({ x: this.CHART_X + this.CHART_WIDTH, y: this.CHART_Y - this.CHART_BORDER_SIZE });
+      const _ = new Path2D();
+      if (this.INTERPOLATE_TYPE !== g.LINEAR)
+        this.applyBezierCurve(_, a);
+      else
+        for (const E of a)
+          _.lineTo(E.x, E.y);
+      A.reverse().forEach((E) => a.push(E)), r.setShapes(a), t.stroke(_), t.closePath(), this.INTERPOLATE_TYPE === g.LINEAR && this.IS_SHOW_PEAK && this.IS_SELECTION_ENABLE && this.elementHover && r.getElementName() === this.elementHover.getElementName() && a.forEach((E, H) => {
+        this.INTERPOLATE_TYPE && H % this.INTERPOLATE_SCALE !== 0 || super.drawPeak(I.PEEK_STYLE.CIRCLE, E, 2, 4, r.getElementColor(), t);
+      });
+    }), t.save(), this.IS_SHOW_POPUP && this.elementHover && this.drawPopup(this.elementHover, this.elementHover.getSelectedPoint(), t), this.IS_SHOW_LEGEND && this.elementHover && this.drawLegendHover(this.elementHover, t), t.restore();
+  }
+  /**
+   * Check if specific position is in Chart element shapes.
+   * 
+   * @param {*} x 
+   * @param {*} y 
+   * @returns 
+   */
+  isPointOnShapes(t, e) {
+    const s = Array.from(this.CHART_ELEMENTS.getChartElementMap().values()).reverse();
+    for (const i of s) {
+      const h = new Path2D();
+      if (i.getShapes().forEach((l) => h.lineTo(l.x, l.y)), h.closePath(), super.getPolygon(i.getLegendShapes(), !1).contains(t, e))
+        return i.isInLegend = !0, i;
+      if (this.ctx.isPointInPath(h, t, e)) {
+        const l = this.CHART_WIDTH / this.CHART_ELEMENTS.getXIndex().length, r = parseInt((t - this.CHART_X) / l);
+        if (r < i.getValues().length)
+          return i.setSelectedValue(i.getValues()[r]), i.setSelectedValueIndex(r), i.setSelectedPoint({ x: t, y: e }), i.isInLegend = !1, i;
+      } else
+        i.setSelectedValue(-1), i.setSelectedValueIndex(-1), i.setSelectedPoint(null), i.isInLegend = !1;
+    }
+    return null;
+  }
+  /**
+   * Set line thickness
+   * @param {number} size
+   */
+  setLineSize(t) {
+    this.LINE_SIZE = t;
+  }
+}
+class q {
+  /**
+   * Create chart
+   * @param {*} chartType 
+   * @param {*} elementsJson 
+   * @param {*} canvas 
+   * @returns 
+   */
+  static createChart(t, e, s = null) {
+    if (t === I.CHART.BAR)
+      return new j(s, e, "");
+    if (t === I.CHART.AREA)
+      return new $(s, e, "");
+    if (t === I.CHART.BAR_RATIO)
+      return new z(s, e, "");
+    if (t === I.CHART.LINE)
+      return new Q(s, e, "");
+    if (t === I.CHART.CIRCLE)
+      return new K(s, e, "", !1);
+    throw new Error("Chart type: " + t + " is not supported!!!");
+  }
+}
+export {
+  O as AbstractChart,
+  $ as AreaChart,
+  j as BarChart,
+  z as BarRatioChart,
+  U as Chart,
+  I as ChartConstants,
+  W as ChartElement,
+  c as ChartElements,
+  P as ChartUtility,
+  K as CircleChart,
+  q as DefaultChartFactory,
+  X as DividedDifferenceInterpolator,
+  g as INTERPOLATE,
+  Q as LineChart,
+  V as LinearInterpolator,
+  k as NevilleInterpolator,
+  Z as Point2D,
+  L as Polygon
+};
